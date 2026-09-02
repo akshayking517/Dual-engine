@@ -1,0 +1,837 @@
+---
+title: "Computing Leaves the Device"
+dek: "Ambient power, distributed intelligence, and the architecture of the spatial internet. Every decision in this essay follows from one objective: drive the power requirement of every device down far enough that it can be powered wirelessly."
+date: "2026-08-24"
+tags: ["spatial computing", "wireless power", "edge infrastructure"]
+confidence: "load-bearing"
+paper: "/papers/computing-leaves-the-device.pdf"
+---
+
+I want to describe the world I actually believe we are heading toward,
+because every technical argument in this essay exists in service of it.
+
+Start with the gramophone. In 2005, a gramophone was not a broken object. It
+worked. It played music, faithfully, to anyone who wanted to hear music. What
+killed it was not a better gramophone. It was a format change that made its
+entire physical form pointless — the needle, the groove, the horn, the
+furniture-sized cabinet, all of it existed to solve a problem that had
+stopped existing.
+
+Screens are gramophones.
+
+A screen is a window you look into. Every screen ever manufactured is the
+same compromise: take a three-dimensional world, flatten it onto a plane, and
+ask a brain evolved for depth, parallax, and presence to accept the
+flattening. We have become extraordinarily good at that compromise — 4K, HDR,
+120 hertz, quantum dot, OLED — decades of brilliant engineering spent making
+a lossy translation less noticeable. The translation is about to stop being
+necessary.
+
+Before describing what replaces it, here is the single thing this essay
+optimizes for, because every architectural decision in it follows from one
+objective:
+
+<Axiom n="1">
+  Drive the power requirement of every device down far enough that it can be
+  powered wirelessly. Everything else — computation moving off the body,
+  inference nodes in buildings, deciding what to transmit versus what to
+  reconstruct, robots buffering their own power spikes — is a means to that
+  one end. Each is a way of removing work from the device, and every unit of
+  work removed is a unit of power the device no longer has to carry.
+</Axiom>
+
+Get the demand low enough and something changes in kind rather than in
+degree: the device stops needing stored energy at all. It draws what it needs
+from the space around it, continuously, the way it already draws Wi-Fi. No
+plugging in. No docking. No charging overnight.
+
+That is the end state — a wirelessly powered world — and the rest of this
+essay is the architecture that gets there.
+
+One clarification on scope. I started by asking how to power better phones
+and laptops, and it was the wrong question. Those devices are the current
+form of a compromise that is ending; designing a power architecture for them
+is designing for a category on its way out. The devices worth designing for
+are the ones that come next: no screens, no batteries, sensing on the body,
+intelligence in the environment, worlds rendered around you rather than
+displayed in front of you.
+
+So, what replaces the screen. A recorded moment today becomes footage: a
+rectangle you watch, from the position the camera happened to occupy. In the
+world this essay describes, you do not watch it. You stand inside it. Video
+calls stop being a grid of rectangles containing faces — you meet somewhere,
+a landscape or a workshop generated on demand, specific to that meeting. A
+colleague on the other side of the planet stands beside you at the machine
+you are both trying to fix, casting light-consistent shadows, pointing at the
+part they mean.
+
+Presence is not a resolution problem. What convinces the brain is not pixel
+density — it is latency short enough to be imperceptible, parallax that
+responds correctly to your head, occlusion that behaves, sound arriving from
+the right direction, lighting consistent with the geometry you are standing
+in. Get those aligned and the brain stops auditing the experience and simply
+accepts it. It does not require perfect fidelity. It requires *coherent*
+fidelity.
+
+And none of it plugs in. The devices that deliver this draw milliwatts to a
+few watts, harvested continuously from the field around them, supplied by
+localized emitters in buildings and, eventually, by solar collectors in orbit
+beaming power to the ground.
+
+## 1. The last generation to look at screens
+
+Here is the consequence I think is most underrated. **The battery is the most
+tyrannical constraint in modern industrial design.** Almost every consumer
+device of the last thirty years is, structurally, a box built around a cell.
+Thickness, weight, weight distribution, thermal layout, silhouette, materials
+— the entire visual language of consumer electronics is downstream of a
+rectangular lithium brick and the heat it produces.
+
+Remove it and industrial design gets its freedom back for the first time
+since the transistor. Glasses that look like glasses, because they weigh what
+glasses weigh. Objects that compute and look like jewelry, like fabric, like
+nothing in particular. Forms determined by who the object is for and what it
+does, rather than by what has to fit inside it.
+
+That is a creative explosion, and it follows a pattern we have seen before.
+When a constraint that shaped an entire category lifts, the first decade is
+chaos and delight — it happened when synthesizers freed music from what a
+body could physically play, when digital cameras freed photography from the
+cost per frame.
+
+<MarginNote label="scale">
+  This is what abundance looks like at the scale of a Kardashev Type I
+  civilization, and the threshold is less exotic than it sounds. It does not
+  mean starships. It means energy so available that it stops being a design
+  consideration at all — the way clean water stopped being one in a modern
+  city, the way bandwidth stopped being one for most of what we do online.
+  Ambient energy across a room and orbital energy across a continent are the
+  same idea, and both are steps along the same path.
+</MarginNote>
+
+I find this future overwhelmingly optimistic, and closer than it looks, for a
+specific reason: not one piece of it requires a scientific miracle. Every
+component is an engineering problem, most of them already have people working
+on them for entirely unrelated reasons, and the funding is already flowing.
+None of it exists yet. The reason is narrower and more specific than almost
+anyone assumes.
+
+## 2. The battery is the last unsolved systems problem
+
+Every other component of modern computing has improved by orders of
+magnitude. One has not.
+
+<SpecTable
+  title="What improved, and what didn't"
+  rows={[
+    { k: "Compute per dollar", v: "~1,000,000×", unit: "since ~1990", note: "" },
+    { k: "Storage cost per gigabyte", v: "~100,000×", unit: "cheaper", note: "" },
+    { k: "Wireless throughput, 2G→5G", v: "~10⁵", unit: "×", note: "five orders of magnitude" },
+    { k: "Li-ion energy density", v: "3–4×", unit: "same period", note: "90 → 250–300 Wh/kg" },
+  ]}
+/>
+
+That is an improvement of a few percent a year, compounding slowly, bounded
+by electrochemistry rather than lithography. There is no Moore's Law for
+electrons in a cell, because the constraint is not pattern resolution. It is
+the periodic table.
+
+The consequence is that the battery has quietly become the organizing
+principle of hardware design. Phones ship with thermal throttling because
+sustained compute drains the cell faster than it can be replenished.
+Wearables run stripped-down processors not because engineers lack better
+silicon, but because better silicon would empty the battery before lunch.
+Laptops perform differently on battery than on mains power, which means the
+same machine is two different computers depending on where its electrons come
+from.
+
+We have normalized this. We treat "battery life" as a product specification
+rather than as evidence of an unsolved engineering problem. The interesting
+question is not how to make batteries better. The interesting question is:
+
+<Axiom n="2">
+  What would computing look like if we stopped designing around the battery
+  entirely? That question turns out to reorganize almost everything
+  downstream of it.
+</Axiom>
+
+## 3. Computing evolves by moving bottlenecks
+
+The history of computing is not a history of solved problems. It is a
+history of relocated ones.
+
+Mainframes were bottlenecked by physical access. Solution: put the computer
+on the desk. Personal computers were bottlenecked by isolation. Solution:
+network them. Networked PCs were bottlenecked by local storage and
+maintenance. Solution: move both to the cloud. Cloud-dependent devices were
+bottlenecked by connectivity. Solution: mobile broadband. Mobile devices were
+bottlenecked by their own processing limits. Solution: server-side inference.
+
+At no point did anyone eliminate a constraint. They moved computation to
+wherever the constraint was cheapest to satisfy. Streaming is the cleanest
+example: music did not solve local storage, it relocated storage to a data
+center and paid for that relocation in bandwidth, which was falling in cost
+faster than storage was growing in capacity. The iPod's entire value
+proposition — carry your library with you — was dissolved not by a better
+iPod but by an architectural decision that made the question irrelevant.
+
+This is the pattern worth internalizing: each generation asks *which resource
+is getting cheaper fastest, and what can I move onto it?* Right now, two
+resources are getting dramatically cheaper: distributed computation and
+wireless bandwidth. One resource is nearly static: portable stored energy.
+
+**If energy storage is the slow curve, move work off the things that carry
+stored energy.** Not by making devices more efficient at the margin, but by
+relocating the energy-hungry functions to places where energy is effectively
+unlimited. The next migration in computing is not a faster processor. It is
+the migration of computation and energy away from the body.
+
+## 4. Compute does not belong on the human body
+
+Wearables inherited their architecture by accident. When smartwatches and
+headsets were designed, the only reference architecture available was the
+smartphone: a self-contained unit that senses, computes, renders,
+communicates, and stores its own power. That model was correct for phones. It
+was copied onto the body without anyone asking whether it should be.
+
+The result is a category of devices asked to do five jobs simultaneously, in
+a thermal envelope constrained by human skin, powered by a cell constrained
+by human tolerance for weight. A modern mixed-reality headset performs
+simultaneous localization and mapping, hand and eye tracking, scene
+understanding, neural rendering, and high-bandwidth radio, all while
+remaining light enough to wear and cool enough to sit against a face. Every
+one of those requirements fights the others, and as models grow larger and
+more capable, the architecture becomes untenable — the compute demanded by
+useful spatial intelligence is rising faster than the energy budget available
+on a human head, and there is no version of that curve where the head wins.
+
+<Axiom n="3">
+  The device on your body should be a sensor and a display. Nothing else. Its
+  job is to capture what the world looks like from your position, transmit
+  that efficiently, receive a rendered or partially rendered result, and put
+  it in front of your eyes.
+</Axiom>
+
+Cameras, IMUs, microphones, eye trackers, and a radio can all run in the
+milliwatt range with existing silicon. What cannot run in the milliwatt range
+is inference and rendering — so those should not be there. Glasses that weigh
+thirty grams and last all day are not a distant materials-science
+achievement. They are an architectural decision that has not yet been made at
+scale.
+
+## 5. The shift from geometry to intent
+
+If rendering moves off the device, something has to travel over the air. The
+question of what travels is the central technical question of the spatial
+internet, and both obvious answers are wrong.
+
+**Send the geometry.** Capture the world volumetrically, compress it, stream
+it. Conceptually simple, and enormously expensive: raw volumetric and
+light-field capture runs into gigabits per second before compression, and
+fidelity scales with data, and human vision is demanding.
+
+**Send the meaning.** Transmit a compact semantic description — this is a
+room, there is a person, they are moving this way — and let a generative
+model reconstruct the scene at the receiving end. Bandwidth collapses to
+almost nothing, but the entire cost transfers to inference: power, heat,
+latency, and a reconstruction that is plausible rather than accurate. Fine
+for entertainment. Not fine for a surgeon, an engineer, or anyone whose
+decisions depend on the world being exactly as it is.
+
+Both answers optimize the wrong variable. One minimizes computation. The
+other minimizes transmission. Neither minimizes what actually constrains the
+system.
+
+> Transmit only the information whose transmission costs less energy than
+> reconstructing it locally.
+
+That reframing turns a format debate into an optimization problem. Geometry,
+semantic descriptors, latent features, raw sensor measurements, and cached
+priors are not competing standards. They are interchangeable tools inside one
+energy budget. A static wall that has not changed in an hour should not be
+transmitted — it should be recalled. A face mid-expression should be
+transmitted at high fidelity, because generating it is both more expensive
+and less trustworthy. A texture the receiver has seen a thousand times should
+be a pointer, not a payload.
+
+<SpecTable
+  title="What to send, at what cost"
+  rows={[
+    { k: "Raw volumetric / light field", v: "1–10", unit: "Gbps", note: "1–10 W of radio — dead on arrival" },
+    { k: "Compressed stereo video", v: "100–500", unit: "Mbps", note: "100–500 mW of radio — busts the budget" },
+    { k: "Semantic description + cached scene", v: "1–10", unit: "Mbps", note: "1–10 mW of radio — fits with room to spare" },
+  ]}
+/>
+
+The objective function is not bits. It is total energy consumed across
+communication, computation, memory, and rendering, subject to perceptual
+fidelity and real-time responsiveness. This matters because the trade-off
+does not stabilize: 6G will relax bandwidth constraints without eliminating
+them, better inference silicon will lower computation costs without zeroing
+them, and the ratio between "cheaper to send" and "cheaper to generate" keeps
+shifting by generation, location, time of day, and whether you are in a
+stadium or a forest. **The architecture cannot pick a side. It has to
+negotiate the split dynamically, per scene, per frame, per object.** That
+negotiation layer is the piece nobody has built yet, and it matters more than
+any individual codec or model.
+
+## 6. The rise of distributed intelligence
+
+If the device stops generating worlds, the generation has to happen
+somewhere. There are two default answers, and both fail.
+
+**The cloud fails on physics.** Comfortable spatial computing requires
+motion-to-photon latency under roughly twenty milliseconds. Light in fibre
+travels around 200,000 kilometres per second, so a round trip of a thousand
+kilometres costs about ten milliseconds before a single packet is queued,
+processed, or rendered. Hyperscale data centers are built where land and
+power are cheap, which is almost by definition far from where people are. The
+speed of light is not an engineering problem to be optimized. It is a
+boundary condition.
+
+**The local device fails on energy.** That was Section 4.
+
+What sits between them is not a compromise. It is a new layer: **localized
+micro data centers positioned within a few kilometres of users.** Cabinets,
+not campuses. Enough compute to render for a neighbourhood, close enough that
+the round trip is a millisecond or two, connected to mains power and to real
+cooling, and — this is the part that matters — shared across everyone in
+range.
+
+Sharing is what makes the economics work. A headset's GPU is idle most of the
+time and sized for peak load. A neighbourhood inference node runs at high
+utilization because human activity is statistically smooth in aggregate. The
+same silicon serves a hundred users at a fraction of the per-user cost, in a
+location where cooling is a fan rather than a thermal-comfort constraint
+against someone's forehead.
+
+Once that layer exists, the hierarchy inverts. The node becomes the
+computer. The glasses, the watch, the phone, the car, the robot — all become
+interfaces to it.
+
+## 7. Spatial computing becomes infrastructure
+
+The moment computation becomes room-scale rather than body-scale, it stops
+being a consumer electronics problem and becomes a **building** problem.
+
+This transition has happened before, repeatedly, and it always looks the
+same. Electricity began as a per-device consideration and became a wall
+socket. Networking began as a cable you ran yourself and became a property
+feature. Air conditioning began as a machine you bought and became a system
+you inhabit. In each case, the technology stopped being a product you carried
+and became a service the space provided.
+
+Compute is next. An office already has an electrical plan, a network plan,
+and an HVAC plan. It will acquire a compute plan: where the inference nodes
+live, how they are cooled, how much power they draw, how coverage is
+distributed so that no room is a dead zone. A hospital will specify
+computational coverage in an operating theatre the way it currently specifies
+gas lines and sterile airflow. Real estate developers will advertise it.
+Building codes will eventually address it. Landlords will meter it.
+
+And the room, having acquired sensors and inference and memory of its own
+state, becomes computationally intelligent — not in a mystical sense, but in
+the ordinary sense that it can perceive its own geometry and occupancy and
+serve that understanding to whatever devices are present. The wearable stops
+being a computer you wear and becomes a key you carry.
+
+## 8. The new power hierarchy
+
+Now the argument closes on itself, because relocating computation relocates
+energy demand. The principle is simple:
+
+<SpecTable
+  title="Power should exist where computation exists"
+  rows={[
+    { k: "High-power computation", v: "mains", unit: "", note: "inference, rendering, model execution — watts to hundreds of watts, in buildings" },
+    { k: "Medium-power systems", v: "docked", unit: "", note: "vehicles, robots — return to a charger as part of normal duty cycle" },
+    { k: "Low-power sensing", v: "ambient", unit: "", note: "cameras, IMUs, microphones, radios, displays — milliwatts, often microwatts on average" },
+  ]}
+/>
+
+Read that hierarchy against the history of wearable design and the mistake
+becomes obvious: we have spent a decade trying to fit watt-scale computation
+into a milliwatt-scale power envelope, and calling the resulting compromise a
+product. The alternative is not a better battery. It is a smaller problem.
+
+**Instead of making batteries larger, minimize what requires a battery at
+all.** If the body-worn device draws single-digit milliwatts averaged over a
+day, the entire energy conversation changes character. You are no longer
+asking how to store enough energy for eight hours of GPU work. You are asking
+how to supply a few milliwatts continuously to something that never has to be
+plugged in. Those are not the same question, and the second one has answers
+the first one does not. Energy follows computation. Move the computation, and
+the energy problem moves with it — into buildings, where it was already
+solved.
+
+## 9. Ambient power instead of managed power
+
+Here is where wireless power stops being a gimmick.
+
+Wireless power today is mostly point-to-point: a charging pad with a coil, or
+a beam-steering system that tracks a device and delivers watts to it
+directly. Both are attempts to replace the cord. Both inherit the cord's
+mental model — a dedicated link between a source and a sink, negotiated,
+exclusive, and efficiency-obsessed, because when you are moving watts, every
+percentage point of loss is heat and cost.
+
+That entire framing dissolves once device demand collapses into the
+milliwatt range. At milliwatt scale, the objective is no longer efficient
+beam delivery. It is **coverage**. Energy stops being a link and becomes a
+field: continuously present, broadly distributed, harvested opportunistically
+by any device inside it, shared simultaneously by every device in range
+without negotiation or handshake.
+
+The right analogy is not the power cord. It is radio. Nobody asks whether an
+FM signal is efficiently delivered to their car. The transmitter radiates,
+and anyone within coverage receives. The system is enormously wasteful by
+point-to-point standards and completely successful by its own, because the
+value is in ubiquity rather than in efficiency. Ambient power works the same
+way — a transmitter saturating a volume with RF at safe exposure limits
+delivers a low but reliable power density everywhere inside it. Ten devices
+in the room do not divide a budget; they each take what they can capture.
+Adding a device costs the infrastructure nothing.
+
+Honest accounting matters here. Ambient RF harvesting from existing broadcast
+and cellular signals yields microwatts at best. Purpose-built ambient power
+systems can do considerably better within safety limits, but the delivered
+power density still falls off with distance, and the end-to-end efficiency of
+such a system, measured conventionally, is poor. The response to that is not
+to dispute the numbers. It is to reject the metric.
+
+<Axiom n="4">
+  Efficiency is the wrong measure for infrastructure whose value is coverage.
+  The grid loses a meaningful fraction of generated power in transmission and
+  distribution, and no one considers this an argument against
+  electrification. A city-scale ambient power layer supplying billions of
+  milliwatt devices consumes a rounding error against the same city's air
+  conditioning load. That is the correct comparison, and it favours ambient
+  power decisively.
+</Axiom>
+
+## 10. The four converging curves
+
+No single breakthrough produces this architecture. It emerges from four
+independent trends, none of which were created for this purpose.
+
+**Curve one — falling device power.** Sensor front ends, low-power radios,
+always-on wake circuits, and near-threshold silicon have driven the standby
+and duty-cycled power of a capable sensing device down by orders of magnitude
+over two decades, driven by the IoT and mobile industries for reasons
+unrelated to this argument.
+
+**Curve two — improving harvesting efficiency.** RF-to-DC rectifier design,
+low-voltage cold-start circuits, and multi-band antenna design have steadily
+improved the fraction of a weak field convertible into usable power, driven
+largely by RFID, medical implants, and industrial sensing.
+
+**Curve three — compute decentralization.** Edge inference silicon, telecom
+edge deployments, and the economics of latency-sensitive services are pushing
+computation outward from hyperscale centers toward users, funded by the
+entire telecommunications and cloud industry for reasons entirely unrelated
+to wearables.
+
+**Curve four — falling launch costs.** Reusable launch has cut the cost of
+putting mass into orbit by roughly an order of magnitude within a generation,
+with further reductions plausible, driven by satellite constellations and
+national space programs.
+
+Each curve is independently financed, independently motivated, and
+independently on track. The systems argument is that they multiply rather
+than add: device power falling by three orders of magnitude and harvesting
+efficiency improving by one means the gap between what a device needs and
+what a field can supply closes by four orders — and that gap closing is the
+entire precondition for battery-free operation. Nobody is building toward
+this convergence. It is happening as a byproduct, which is the most reliable
+kind of technological progress there is.
+
+## 11. Why AI accidentally solves wireless power
+
+The AI infrastructure buildout looks like the opposite of a low-power future.
+Gigawatt data centers, dedicated power plants, a capital expenditure race
+measured in hundreds of billions of dollars — it reads as a story about
+energy consumption, not energy liberation.
+
+It is, in fact, the single strongest enabling force for battery-free devices,
+and the mechanism is almost too simple to notice: **every dollar spent making
+remote inference cheap and fast reduces the amount of computation that must
+happen locally.** The industry is building, at enormous scale and for
+entirely commercial reasons, the exact infrastructure this architecture
+requires — dense inference capacity, low-latency distribution, model serving
+at scale. Nobody in that industry is trying to eliminate batteries. They are
+trying to serve models profitably. But the second-order effect of succeeding
+is that the computational floor for a client device keeps dropping — and the
+lower that floor falls, the closer it gets to what an ambient field can
+supply without any battery at all.
+
+This is how infrastructure transitions usually work. The enabling investment
+is made for an unrelated reason, by people with no interest in the eventual
+application, and the application arrives later to find its foundation already
+poured.
+
+## 12. The spatial internet
+
+Put the pieces together and the result is not a better headset. It is a
+different internet.
+
+The internet we have is visual and symbolic — information lives inside
+rectangles, navigated through metaphors invented to make an abstract system
+legible on a two-dimensional screen. The spatial internet inverts that:
+persistent three-dimensional environments, continuously generated around
+you, anchored to real locations, shared with other people who are physically
+or virtually present. Information does not live in a rectangle. It lives
+where it is relevant.
+
+Three shifts follow. The internet becomes spatial rather than visual —
+content has position, persistence, and physical relationship rather than URL
+and page rank. Interaction becomes physical rather than symbolic — you reach,
+move, look, and speak, and the translation layer between intention and
+action thins. Interfaces disappear into environments — the most successful
+interface is the one nobody notices, because the room simply behaves
+correctly.
+
+This is only possible under the architecture described above. A spatial
+internet running on self-contained battery-powered devices is a demo. A
+spatial internet running on ambient power and distributed inference is
+infrastructure.
+
+## 13. Robotics changes the equation again
+
+Robots are currently designed exactly the way wearables are: as complete
+self-contained computers that carry their own perception, planning,
+inference, and power. That design faces the same constraint, amplified. A
+humanoid robot spends a substantial fraction of its energy budget carrying
+the mass of its own battery and computer, and a further fraction cooling
+that computer. Every watt of onboard inference is a watt not available for
+actuation, and every kilogram of battery is a kilogram of payload lost.
+
+Once ambient sensing, distributed inference, and spatial intelligence
+mature, robots inherit the architecture for the same reason wearables do. A
+robot operating inside a computationally instrumented building does not need
+to build a map — the building has one. It becomes an **embodied endpoint**:
+actuators, sensors, safety-critical local reflexes, and a fast link to the
+infrastructure that handles everything above the reflex layer. Local autonomy
+does not disappear — anything safety-critical stays on board, because a
+robot that stops thinking when the network hiccups is not a product — but the
+split between what must be local and what should be infrastructural is an
+engineering decision, and current designs make it in the wrong place by
+default.
+
+*The battery backpack is the wrong answer.* The industry's response to
+robot endurance has been to pursue better chemistry — the goal is a better
+battery backpack. This treats the symptom. A physical agent that requires
+tens of kilograms of stored energy to operate for a few hours has already
+lost the architecture argument twice: once because it spends a meaningful
+share of its energy carrying and cooling its own power supply, and again
+because that mass degrades every mechanical parameter that matters.
+
+It also forecloses the endgame. A robot with a high continuous power draw
+cannot be powered wirelessly, and the reason is not engineering difficulty.
+It is safety. Delivering kilowatts continuously to a moving target in a
+public space requires field intensities far above human exposure limits — at
+those densities you have not built power infrastructure, you have built a
+directed-energy weapon and pointed it down a sidewalk. Exposure limits are
+not a regulatory inconvenience to be lobbied away. They are the hard ceiling
+the entire architecture has to fit under.
+
+*Trickle-spike.* Once you accept the ceiling as fixed, the design problem
+inverts. Stop asking how much power can be transmitted. Start with what can
+safely be harvested, and build the machine that fits inside it. The baseline
+available to a wirelessly powered robot is governed by a first-principles
+relationship:
+
+$$
+P_{\text{harvested}} = S \times A \times \eta
+$$
+
+— incident power density, effective receiving area, and conversion
+efficiency. Three terms, and only one of them is locked. Power density is
+capped by safety and sits wherever exposure standards put it; no amount of
+transmitter engineering moves it. Effective area is a design variable, and a
+larger one than it appears: conformal metamaterial rectennas remove the
+assumption that a robot needs to carry a flat panel — the receiving surface
+becomes the skin of the machine, curved, distributed across torso and limbs.
+Conversion efficiency is an engineering variable, improving for reasons
+unrelated to robotics.
+
+Set against that harvestable baseline is the demand side, and two levers
+matter there far more than any specific technology: **compute that costs
+less** — neuromorphic silicon, event-driven perception, aggressive offload of
+everything above the reflex layer — and **actuation that fights physics
+less** — passive dynamics, elastic energy storage, compliant mechanisms,
+bio-inspired designs that exploit gravity and momentum instead of
+brute-forcing every joint with an oversized motor. Biological locomotion is
+efficient because it spends most of its cycle falling and catching.
+
+Even with demand driven down, robots have a load profile problem: locomotion
+is not a flat draw. Standing, sensing, and slow movement sit near the
+baseline. Jumping, lifting, catching, and sprinting spike an order of
+magnitude above it, for fractions of a second. Sizing a power system for
+those spikes is what produces the battery backpack. But the spikes do not
+need to be *supplied* by the harvest. They need to be *buffered*.
+
+> Harvest the baseline continuously and wirelessly. Buffer the peaks locally
+> in onboard storage.
+
+Solid-state supercapacitors are well suited to exactly this role — high
+power density, fast discharge, high cycle life, and indifference to the
+deep-discharge behavior that degrades chemical cells. Paired with a small
+battery for reserve, they absorb the spike and recharge from the trickle
+during the far longer intervals between spikes. The energy balance is
+straightforward: over any duty cycle, harvested energy must meet or exceed
+consumed energy. Storage decouples instantaneous supply from instantaneous
+demand.
+
+**Onboard storage stops being sized for endurance and becomes sized for the
+largest single burst.** Endurance comes from the field. Storage handles
+transients. Those are different components, orders of magnitude apart in
+capacity, and conflating them is what puts a battery backpack on every
+humanoid in development. That distinction is the entire argument. The
+physical world becomes the operating system, and robots become one of
+several classes of process running on it.
+
+## 14. Beyond Earth: orbital energy infrastructure
+
+Space-based solar power has been proposed since the 1960s and has failed on
+economics every time. The physics was always sound: a collector in orbit
+receives sunlight continuously, without atmosphere, weather, or night, at
+roughly a third more intensity than the surface. The problem was that
+lifting a power station cost more than the power was worth, by a margin no
+efficiency improvement could close.
+
+Launch cost is the only variable that ever mattered, and it is the one that
+moved. Reusable launch has already cut cost-per-kilogram to orbit by an
+order of magnitude, and further reductions are credible if not yet
+demonstrated. Meanwhile, the transmission side has moved from theory to
+hardware: orbital demonstrations have beamed measurable power to receivers on
+the ground. The quantities are small — this is early-stage work — but the
+loop has been closed, and closing a loop is the hard part.
+
+The framing that matters: **orbital power is not a separate technology. It
+is the same ambient architecture at a different altitude.** A terrestrial
+ambient power layer and an orbital one solve the same problem — delivering
+energy to distributed receivers without physical connection — with the same
+fundamental method. The receiver technology overlaps. The regulatory
+questions rhyme. The system design principles are identical. One serves a
+room; one serves a region. This is why orbital power belongs in this
+argument rather than in a separate speculative appendix: it is the outermost
+layer of the same stack, and it becomes plausible for a reason unrelated to
+itself — launch economics improved because of satellite internet, and
+orbital power gets the benefit.
+
+## 15. A new computing stack
+
+The traditional stack is device-centric and terminates in the constraint we
+started with:
+
+<Schematic id="FIG 2" caption="The device-centric stack. Everything above the battery is negotiating with it.">
+```
+   Application
+       ↓
+   Operating System
+       ↓
+   Hardware
+       ↓
+   Battery
+```
+</Schematic>
+
+Every layer's design is partly a concession to the layer beneath, and the
+bottom layer improves at a few percent a year. The replacement is
+environment-centric:
+
+<Schematic id="FIG 3" caption="The environment-centric stack. The bottom layer wasn't improved — it was replaced by infrastructure.">
+```
+   Application
+       ↓
+   Foundation Models
+       ↓
+   Spatial Intelligence
+       ↓
+   Distributed Edge Compute
+       ↓
+   Ambient Energy Infrastructure
+```
+</Schematic>
+
+The distinction is not cosmetic. In the first stack, the unit of computing is
+a device, bounded by what it can carry. In the second, the unit of computing
+is an environment, bounded by what the grid can deliver — which is to say,
+not meaningfully bounded at all. Note what happened to the bottom layer. It
+did not get better. It got *replaced by infrastructure*. That is the same
+move electrification made when it replaced on-site generators with a grid,
+and the same move cloud computing made when it replaced server closets with
+regions. In both cases the winning architecture was not a superior version of
+the constrained component. It was the removal of the component from the
+critical path.
+
+## 16. Capital always builds the future before it understands it
+
+Infrastructure consistently arrives before the application that justifies
+it, built by people who are wrong about what they are building. Railroads
+were financed for freight and reorganized where people lived. The electrical
+grid was built to sell lighting and enabled the assembly line, refrigeration,
+and everything downstream of the electric motor. Fiber laid during the
+telecom bubble was justified by demand forecasts that were badly wrong, went
+dark, sold for cents on the dollar, and then carried streaming video and the
+cloud. Data centers built for enterprise virtualization became the substrate
+for everything that followed. The AI buildout underway now is justified by
+revenue projections that will look either naive or timid in a decade, and
+either way the concrete and copper will remain.
+
+The pattern: capital builds capacity for a stated reason, the stated reason
+turns out to be incomplete, and the capacity gets used for something its
+financiers did not anticipate. Every component of the architecture in this
+essay is already being financed by someone with an unrelated motive. Edge
+compute is being built for latency-sensitive commercial services. Low-power
+silicon is being built for connected devices. Harvesting circuits are being
+refined for industrial sensing and implants. Launch capacity is being built
+for satellite constellations. Inference capacity is being built for a market
+that has nothing to do with spatial computing.
+
+<Axiom n="5">
+  Nobody is funding "ambient-powered computing," and nobody needs to. The
+  future described here emerges from the intersection of investments already
+  being made, not from a deliberate program to create it. That is the
+  strongest reason to believe it happens, and also the reason it will arrive
+  without an announcement.
+</Axiom>
+
+## 17. What can be built today
+
+A vision that requires everyone to wait is not a vision. It is a forecast,
+and forecasts do not get funded. So here is the practical question: what can
+be built and sold profitably in the next three years that also moves this
+architecture forward? Every item below passes one test:
+
+> It has a paying customer who does not care about this essay.
+
+That constraint is not a compromise. It is the mechanism. Infrastructure
+gets built when each layer is independently viable, and the businesses that
+end up owning a transition are almost always the ones that were solving a
+boring problem for real money while the transition happened around them.
+
+**Shipping now, with customers today.** Ultra-low-power perception silicon —
+sensors and front ends that detect, classify, and wake at microwatt averages
+— sells into industrial condition monitoring, automotive occupant sensing,
+hearables, and security, and every design win drives Curve One. Battery-free
+sensing for buildings and logistics is the clearest wedge for ambient power:
+commercial buildings, cold chain, warehouses, and retail shelf systems deploy
+sensors by the thousand, and the dominant lifetime cost is a technician
+walking around replacing batteries — harvested-power sensors sell on
+maintenance economics alone. Split-compute wearables for enterprise — glasses
+that offload rendering and inference to a nearby node — sell into field
+service, warehousing, surgical support, and inspection, where enterprise
+tolerates a tether consumers will not. Latency-critical edge inference nodes
+— micro data centers placed near population density — sell to cloud gaming,
+live production, industrial vision, and autonomous systems.
+
+**The strategic middle: highest leverage, least crowded.** The adaptive
+representation layer — the software that decides, continuously, what to
+transmit and what to reconstruct — is the most valuable unbuilt thing in the
+entire architecture, and it already has customers in remote robot and drone
+teleoperation, cloud rendering, and volumetric telepresence, all currently
+solving it badly and privately inside their own stacks. Build it well,
+publish the benchmarks, and it becomes the standard by default. Persistent
+spatial scene services — a maintained, queryable, up-to-date representation
+of a real building — sell today to construction, facilities management,
+insurance, and robotics integrators. Infrastructure-side robot autonomy sells
+warehouse and factory operators a reduction in cost per robot by moving
+perception and planning off the robot and into the building. Compute as a
+building system — specification, integration, and operation of inference
+capacity as part of a building's design — sells the way structured cabling
+and building management systems are sold: low-margin, unfashionable, and the
+reason it happens on schedule.
+
+**Capital-intensive, fundable now, returns later.** Power beaming for places
+wiring cannot reach — remote installations, off-grid sensing, drone
+endurance, defense logistics — has budgets today and no good alternative.
+Orbital power *components*, not orbital power stations: lightweight
+high-efficiency photovoltaics, thermal management, phased-array
+transmitters, deployable structures, ground rectennas. Every one has a
+satellite, defense, or terrestrial customer today.
+
+**What not to build.** A fully self-contained consumer headset is the
+gramophone with a better needle — the constraint is architectural, and no
+amount of silicon or industrial design solves it from inside the device. A
+battery breakthrough as the load-bearing assumption is a bet against thirty
+years of evidence. An ambient power company with no anchor customer dies in
+the gap between demonstration and infrastructure — that gap has killed nearly
+everyone who has tried.
+
+## 18. Research agenda
+
+**On device power.** How low can the power draw of a fully capable
+sensing-and-display wearable realistically fall, given optimal duty cycling
+and an offloaded compute path? What is the true floor for always-on
+perception?
+
+**On representation.** What representation minimizes total system energy for
+spatial communication, and how does the optimum shift with available
+bandwidth? How do you build a negotiation layer that decides, per object and
+per frame, whether to transmit or reconstruct?
+
+**On placement.** Where should micro inference nodes be positioned to
+minimize latency and cost across a real population density? What is the
+economic crossover point between local and distributed inference?
+
+**On energy.** What is the minimum viable ambient power density for a useful
+class of devices, and what does it cost to deliver at room, building, and
+city scale? What regulatory framework governs diffuse wireless energy —
+exposure limits, spectrum allocation, interference, and liability?
+
+**On embodied systems.** What is the orientation-averaged effective
+collecting area of a conformal rectenna surface across a realistic
+locomotion cycle, measured rather than modeled? Where does the energy balance
+close first — which class of machine, in which environment, becomes
+wirelessly sustainable soonest?
+
+**On the outer layer.** How should orbital and terrestrial power
+infrastructure coexist technically and economically? What receiver
+architecture serves both?
+
+None of these have settled answers. Several are dissertations. A few are
+companies.
+
+## 19. Conclusion — computing leaves the device
+
+This essay does not predict a gadget. It describes an architecture, and
+architectures outlive the products built on them.
+
+The history of computing has been a history of moving work to wherever it is
+cheapest to perform. Mainframe to desk, desk to pocket, pocket to cloud,
+cloud to edge. Each move looked like a product decision and was actually a
+placement decision, and each one was obvious in retrospect and contested at
+the time. The next move is to stop asking *how powerful can the device
+become* and start asking a different question:
+
+> Which parts of computing belong on the body, in the room, in the city, and
+> eventually in orbit?
+
+That question is the whole argument. Once it replaces the old one, a set of
+independently developing trends stops looking coincidental. Falling device
+power, improving harvesting, decentralizing compute, and cheapening launch
+are not four unrelated stories. They are four sides of one transition, and
+they are converging whether or not anyone plans it.
+
+Which returns us to where this essay started. Standing inside a recording
+instead of watching it, meeting someone in a place that did not exist an
+hour ago, wearing something that never charges — none of that is a hardware
+wish. It is what falls out of answering the placement question correctly.
+Every element of it is downstream of moving computation off the body and
+energy off the device. Get the architecture right and the experience is a
+consequence rather than a goal.
+
+The Kardashev Type I threshold sits roughly four orders of magnitude above
+our current planetary energy use. We do not close that gap by improving
+batteries. We close it by learning to treat energy the way we already treat
+bandwidth and clean water: as ambient, distributed, and universally
+available rather than as a resource each device hoards for itself.
+
+The device becomes lighter. The environment becomes smarter. Computation
+dissolves into the spaces we inhabit, and the battery — the last unsolved
+systems problem — stops being a problem by ceasing to be a requirement.
+
+That is not a prediction about hardware. It is a question about placement,
+and the answer is already being built by people who think they are building
+something else.

@@ -1,0 +1,485 @@
+@import "katex/dist/katex.min.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   PALETTE
+   One neutral ground for the whole site (neutral-950 / neutral-900 /
+   neutral-800 borders). The two hemispheres are told apart by accent,
+   texture and typography — not by a different background.
+
+   Every colour is declared once, here, as an RGB triplet so Tailwind's
+   `<alpha-value>` syntax works. Nothing else in the codebase hardcodes a hex.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* ---- Neutral ground, shared ---- */
+    --neutral-950: 10 10 10;
+    --neutral-900: 23 23 23;
+    --neutral-850: 30 30 30;
+    --neutral-800: 38 38 38;
+    --neutral-50: 250 250 250;
+    --neutral-400: 163 163 163;
+    --neutral-500: 115 115 115;
+
+    /* ---- THE ARCHITECT — cool accent, blueprint grid, monospace ---- */
+    --architect-bg: var(--neutral-950);
+    --architect-bg-raised: var(--neutral-900);
+    --architect-text: var(--neutral-50);
+    --architect-text-muted: var(--neutral-400);
+    --architect-text-faint: var(--neutral-500);
+    --architect-accent: 122 162 196;
+    --architect-edge: var(--neutral-800);
+    --architect-grid: 150 160 175;
+
+    /* ---- THE OBSERVER — warm accent, ambient glow, serif ---- */
+    --observer-bg: var(--neutral-950);
+    --observer-bg-raised: var(--neutral-900);
+    --observer-text: var(--neutral-50);
+    --observer-text-muted: var(--neutral-400);
+    --observer-text-faint: var(--neutral-500);
+    --observer-accent: 201 154 78;
+    --observer-edge: var(--neutral-800);
+    --observer-glow: 201 148 70;
+
+    /* ---- Active lens (defaults to Architect) ---- */
+    --bg: var(--architect-bg);
+    --bg-raised: var(--architect-bg-raised);
+    --text: var(--architect-text);
+    --text-muted: var(--architect-text-muted);
+    --text-faint: var(--architect-text-faint);
+    --accent: var(--architect-accent);
+    --edge: var(--architect-edge);
+
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo,
+      Consolas, monospace;
+    --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype",
+      Georgia, serif;
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+    --rail: 15rem; /* margin-note gutter width */
+  }
+
+  /* A single attribute re-skins any subtree. Put it on <html> for a global
+     lens, or on a <section> to embed one hemisphere inside the other. */
+  [data-lens="architect"] {
+    --bg: var(--architect-bg);
+    --bg-raised: var(--architect-bg-raised);
+    --text: var(--architect-text);
+    --text-muted: var(--architect-text-muted);
+    --text-faint: var(--architect-text-faint);
+    --accent: var(--architect-accent);
+    --edge: var(--architect-edge);
+  }
+
+  [data-lens="observer"] {
+    --bg: var(--observer-bg);
+    --bg-raised: var(--observer-bg-raised);
+    --text: var(--observer-text);
+    --text-muted: var(--observer-text-muted);
+    --text-faint: var(--observer-text-faint);
+    --accent: var(--observer-accent);
+    --edge: var(--observer-edge);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--text));
+    transition: background-color 600ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  ::selection {
+    background: rgb(var(--accent) / 0.28);
+    color: rgb(var(--text));
+  }
+
+  /* Focus rings follow the active lens. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent) / 0.7);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   ENVIRONMENTAL TEXTURES
+   ========================================================================== */
+
+@layer components {
+  /* --- Architect: blueprint grid ------------------------------------------- */
+  .env-blueprint {
+    background-color: rgb(var(--architect-bg));
+    background-image: linear-gradient(
+        rgb(var(--architect-grid) / 0.055) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, rgb(var(--architect-grid) / 0.055) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center center;
+  }
+
+  /* Denser sub-grid for the landing panel. */
+  .env-blueprint-fine::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(
+        rgb(var(--architect-grid) / 0.035) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, rgb(var(--architect-grid) / 0.035) 1px, transparent 1px);
+    background-size: 8px 8px;
+    mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 45%,
+      black 0%,
+      transparent 100%
+    );
+  }
+
+  /* Vignette that keeps the blueprint from feeling like graph paper. */
+  .env-blueprint-vignette::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 90% 80% at 50% 40%,
+      transparent 0%,
+      rgb(var(--architect-bg) / 0.75) 100%
+    );
+  }
+
+  /* --- Observer: ambient amber glow ------------------------------------ */
+  /* Neutral ground with one restrained warm bloom — enough to feel different
+     from the Architect side, not enough to tint the page brown. */
+  .env-obsidian {
+    background-color: rgb(var(--observer-bg));
+    background-image: radial-gradient(
+      ellipse 45% 35% at 72% 12%,
+      rgb(var(--observer-glow) / 0.05) 0%,
+      transparent 72%
+    );
+  }
+
+  .env-obsidian-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* --- Shared rules ----------------------------------------------------- */
+  .hairline {
+    border-color: rgb(var(--edge));
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgb(var(--text-faint));
+  }
+}
+
+/* ==========================================================================
+   PROSE — two distinct reading atmospheres
+   ========================================================================== */
+
+@layer components {
+  /* ---------- THE ARCHITECT: technical, structural, monospace-inflected ------ */
+  .prose-architect {
+    --tw-prose-body: rgb(var(--architect-text) / 0.86);
+    --tw-prose-headings: rgb(var(--architect-text));
+    --tw-prose-links: rgb(var(--architect-accent));
+    --tw-prose-bold: rgb(var(--architect-text));
+    --tw-prose-quotes: rgb(var(--architect-text-muted));
+    --tw-prose-quote-borders: rgb(var(--architect-accent) / 0.5);
+    --tw-prose-code: rgb(var(--architect-accent));
+    --tw-prose-hr: rgb(var(--architect-edge));
+    --tw-prose-th-borders: rgb(var(--architect-edge));
+    --tw-prose-td-borders: rgb(var(--architect-edge) / 0.7);
+    --tw-prose-counters: rgb(var(--architect-text-faint));
+    --tw-prose-bullets: rgb(var(--architect-accent) / 0.5);
+    font-family: var(--font-sans);
+    font-size: 1.0125rem;
+    line-height: 1.75;
+  }
+
+  .prose-architect :is(h1, h2, h3, h4) {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .prose-architect h2 {
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgb(var(--architect-edge));
+  }
+
+  .prose-architect h2::before {
+    content: "§ ";
+    color: rgb(var(--architect-accent) / 0.6);
+  }
+
+  .prose-architect h3 {
+    font-size: 1rem;
+    color: rgb(var(--architect-text-muted));
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .prose-architect :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: rgb(var(--architect-accent) / 0.1);
+    border: 1px solid rgb(var(--architect-accent) / 0.18);
+    border-radius: 3px;
+    padding: 0.1em 0.36em;
+  }
+
+  .prose-architect :not(pre) > code::before,
+  .prose-architect :not(pre) > code::after {
+    content: none;
+  }
+
+  .prose-architect pre {
+    background: rgb(var(--architect-bg-raised)) !important;
+    border: 1px solid rgb(var(--architect-edge));
+    border-radius: 4px;
+    font-size: 0.84rem;
+    line-height: 1.7;
+  }
+
+  .prose-architect blockquote {
+    font-style: normal;
+    background: rgb(var(--architect-bg-raised) / 0.6);
+    border-left-width: 2px;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .prose-architect blockquote p::before,
+  .prose-architect blockquote p::after {
+    content: none;
+  }
+
+  .prose-architect table {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  /* ---------- THE OBSERVER: editorial, serif, warm ----------------------- */
+  .prose-observer {
+    --tw-prose-body: rgb(var(--observer-text) / 0.84);
+    --tw-prose-headings: rgb(var(--observer-text));
+    --tw-prose-links: rgb(var(--observer-accent));
+    --tw-prose-bold: rgb(var(--observer-text));
+    --tw-prose-quotes: rgb(var(--observer-text));
+    --tw-prose-quote-borders: rgb(var(--observer-accent) / 0.45);
+    --tw-prose-code: rgb(var(--observer-accent));
+    --tw-prose-hr: rgb(var(--observer-edge));
+    --tw-prose-counters: rgb(var(--observer-text-faint));
+    --tw-prose-bullets: rgb(var(--observer-accent) / 0.45);
+    font-family: var(--font-serif);
+    font-size: 1.1875rem;
+    line-height: 1.82;
+    letter-spacing: 0.004em;
+  }
+
+  .prose-observer :is(h1, h2, h3, h4) {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.015em;
+  }
+
+  .prose-observer h2 {
+    font-size: 1.6rem;
+    margin-top: 2.75em;
+  }
+
+  .prose-observer h2::after {
+    content: "";
+    display: block;
+    width: 2.5rem;
+    height: 1px;
+    margin-top: 0.85rem;
+    background: rgb(var(--observer-accent) / 0.5);
+  }
+
+  /* First paragraph of a diary entry gets the drop cap. */
+  .prose-observer > p:first-of-type::first-letter {
+    float: left;
+    font-size: 3.6em;
+    line-height: 0.82;
+    padding-right: 0.09em;
+    margin-top: 0.06em;
+    color: rgb(var(--observer-accent));
+    font-style: italic;
+  }
+
+  /* Raw quotes — pulled, unpunctuated, hanging. */
+  .prose-observer blockquote {
+    border-left: none;
+    font-size: 1.45rem;
+    line-height: 1.5;
+    font-style: italic;
+    color: rgb(var(--observer-text));
+    margin: 2.5em 0;
+    padding: 0 0 0 1.5rem;
+    position: relative;
+    quotes: none;
+  }
+
+  .prose-observer blockquote::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.4em;
+    bottom: 0.4em;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--observer-accent) / 0.7),
+      transparent
+    );
+  }
+
+  .prose-observer blockquote p::before,
+  .prose-observer blockquote p::after {
+    content: none;
+  }
+
+  .prose-observer hr {
+    border: none;
+    text-align: center;
+    margin: 3.5em 0;
+  }
+
+  .prose-observer hr::before {
+    content: "· · ·";
+    letter-spacing: 0.6em;
+    color: rgb(var(--observer-accent) / 0.55);
+  }
+
+  .prose-observer :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.78em;
+    background: rgb(var(--observer-accent) / 0.1);
+    border-radius: 3px;
+    padding: 0.12em 0.4em;
+  }
+
+  .prose-observer :not(pre) > code::before,
+  .prose-observer :not(pre) > code::after {
+    content: none;
+  }
+}
+
+/* ==========================================================================
+   KATEX — make equations belong to the Architect environment
+   ========================================================================== */
+
+.katex {
+  font-size: 1.04em;
+  color: rgb(var(--text));
+}
+
+.katex-display {
+  margin: 2em 0;
+  padding: 1.35rem 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: rgb(var(--bg-raised) / 0.55);
+  border-top: 1px solid rgb(var(--edge));
+  border-bottom: 1px solid rgb(var(--edge));
+}
+
+.katex-display > .katex {
+  color: rgb(var(--text));
+}
+
+/* Numbered display equations, if `\tag` isn't used. */
+.katex-display::-webkit-scrollbar {
+  height: 6px;
+}
+
+.katex-display::-webkit-scrollbar-thumb {
+  background: rgb(var(--edge));
+  border-radius: 3px;
+}
+
+/* ==========================================================================
+   SHIKI (rehype-pretty-code)
+   ========================================================================== */
+
+pre [data-line] {
+  padding: 0 1.1rem;
+}
+
+code[data-line-numbers] {
+  counter-reset: line;
+}
+
+code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.4rem;
+  margin-right: 1.1rem;
+  text-align: right;
+  color: rgb(var(--text-faint) / 0.6);
+}
+
+figure[data-rehype-pretty-code-figure] figcaption[data-rehype-pretty-code-title] {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(var(--text-faint));
+  padding: 0.5rem 0.25rem;
+}
+
+/* ==========================================================================
+   MARGIN RAIL
+   Diary notes sit in the gutter on wide screens and inline below ~1280px.
+   `.with-rail` only establishes the positioning context; the gutter itself is
+   reserved with `xl:pr-60` on the article, so Tailwind's padding utilities
+   never fight it.
+   ========================================================================== */
+
+.with-rail {
+  position: relative;
+}
+
+/* Thin, unobtrusive scrollbar across the whole ecosystem. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--edge)) transparent;
+}

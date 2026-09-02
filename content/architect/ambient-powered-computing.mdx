@@ -1,0 +1,329 @@
+---
+title: "Ambient-Powered Computing"
+dek: "Wireless power research has spent decades optimizing one variable: how much energy can be transmitted, and how precisely. That is the wrong problem. The right question is when harvested power exceeds what a device actually needs — and that threshold is closer than it looks."
+date: "2026-08-18"
+tags: ["wireless power", "ambient energy", "systems design"]
+confidence: "load-bearing"
+paper: "/papers/ambient-powered-computing.pdf"
+---
+
+Wireless power research has spent decades optimizing one variable: how much
+energy can be transmitted, and how precisely it can be delivered. That framing
+is the wrong problem.
+
+Ambient-powered computing — devices that harvest continuous, diffuse
+electromagnetic energy without alignment, docking, or beam-tracking — becomes
+inevitable through the convergence of four independent curves: device power
+consumption falling by orders of magnitude, rectenna harvesting efficiency
+rising, compute decentralizing away from the device into data-center and AI
+infrastructure that big tech is already financing at a scale no single
+application justifies, and launch costs collapsing under reusable rocket
+economics until orbital infrastructure becomes financially trivial.
+
+The right question is not *how much power can be delivered*. It is *when does
+harvested power exceed what a device actually needs — and when does it become
+economical to beam that power down from orbit at planetary scale?* Three of
+these four curves are already moving, for reasons that have nothing to do with
+wireless power. This essay argues that ambient orbital power is not a distant
+speculative technology. It is the default outcome of four capital-driven
+trends already underway, and connecting them requires no leap of faith — only
+the willingness to look at four industries simultaneously instead of one at a
+time.
+
+## 1. Introduction
+
+Modern computing has advanced along nearly every axis imaginable. One
+component has not kept pace: the battery.
+
+Battery energy density improves slowly, on a timeline disconnected from the
+rest of computing. It remains the bottleneck constraining device size,
+lifespan, placement, and scale — and it will remain the bottleneck for as long
+as devices are architected around the assumption that power must be stored
+locally rather than harvested continuously.
+
+This essay rejects that assumption. Ambient-powered computing assumes devices
+harvest usable energy from the electromagnetic environment that already
+surrounds them, continuously, without alignment or tracking. This is a
+different bet than the one most wireless power research makes. The dominant
+approach asks how to deliver more power, more precisely, to a specific device.
+This essay asks the only question that matters:
+
+<Axiom n="1">
+  Under what conditions does a device stop needing a battery at all, and
+  simply live off ambient power? The answer does not come from a single
+  breakthrough — it comes from the intersection of independent trends, each
+  progressing on its own timeline, at least one of which is already moving on
+  its own for reasons that have nothing to do with wireless power.
+</Axiom>
+
+## 2. Design philosophy
+
+One vision of wireless power imagines kilometre-wide rectenna arrays and
+beams actively tracked onto individual devices as they move through space.
+This essay rejects that vision outright.
+
+A system that requires dedicated infrastructure to track and aim energy at
+every device does not scale the way information networks scale. It recreates,
+for power, the exact point-to-point fragility that packet-switched networks
+were built to eliminate. It is also an invasive, utilitarian vision — billions
+of devices requiring continuously tracked energy beams is not just
+operationally complex, it is a genuinely unpleasant picture of what abundant
+infrastructure should feel like. Point-to-point power delivery is the
+architecture of scarcity. Ambient infrastructure is the architecture of
+abundance.
+
+> Energy is ambient infrastructure, not an actively managed resource.
+
+Information networks already prove this model works. A phone does not
+negotiate a dedicated optical path to load a webpage — it exists inside a
+pervasive field of coverage and pulls what it needs, imperfectly, without
+tracking. Power can follow the same model. The mechanism that makes it
+possible is the one beam-focused architectures spend their engineering budget
+eliminating: **diffraction**.
+
+Where a tracked beam minimizes diffraction to keep energy collimated onto a
+single receiver, this architecture uses diffraction to fill a space with
+usable, low-intensity energy — energy that many devices, at arbitrary and
+unpredictable positions, harvest simultaneously without any of them being
+individually targeted.
+
+This has a direct, brutal tradeoff, and it is the cost that defines this
+entire essay: **power density at any single device drops dramatically.**
+There is no way to engineer around this — it follows from the physics of
+energy spreading once it is no longer being steered. If ambient power density
+is inherently low, ambient-powered computing is not reached by improving
+transmission or harvesting efficiency alone.
+
+<MarginNote label="the thesis" tone="spec">
+  Device power requirements have to fall by orders of magnitude. That is not
+  a caveat on the argument. It is the argument.
+</MarginNote>
+
+A traditional engineer will look at this and call it wasteful — most of the
+energy radiated into a space is never captured. This objection uses the wrong
+metric. Efficiency matters when energy is scarce and the goal is moving a
+large, specific quantity of power from one point to another. Ambient-powered
+computing is not moving a kilowatt anywhere. We do not call Wi-Fi inefficient
+because a router radiates in every direction and only a fraction reaches any
+device. We do not call sunlight wasteful because most of it lands on
+pavement. Ambient infrastructure is generous by nature, not precise — and
+that stops being a problem the moment the receiving side stops needing very
+much.
+
+## 3. Physics does not disappear
+
+This essay's conviction is not a suspension of physics. Every claim here
+operates within constraints that are decades old and non-negotiable.
+
+<SpecTable
+  title="The constraints this essay does not argue away"
+  rows={[
+    { k: "Inverse-square law", v: "1/d²", unit: "", note: "power density falls with the square of distance from any source" },
+    { k: "Diffraction", v: "spreads", unit: "", note: "used here as the delivery mechanism, not fought as a nuisance" },
+    { k: "Aperture limits", v: "λ-bound", unit: "", note: "a receiver's effective aperture is set by geometry and wavelength" },
+    { k: "Friis transmission", v: "lower-bound", unit: "", note: "idealized free-space estimate; real multipath environments diffuse further" },
+    { k: "Rectenna efficiency", v: "↓ w/ density", unit: "", note: "conversion drops precisely in the regime ambient harvesting operates in" },
+    { k: "Ambient RF density", v: "orders below", unit: "", note: "typically many orders of magnitude below a focused beam" },
+  ]}
+/>
+
+These constraints are not obstacles to route around. They are the reason this
+essay's argument takes the shape it does. They rule out any version of
+ambient-powered computing that requires diffuse fields to behave differently
+than physics allows. They do not rule out the one path that remains
+compatible with them: designing devices whose power requirements fall to meet
+the field, rather than fields engineered to meet the device.
+
+## 4. The fundamental inequality
+
+Most wireless power research asks: how much power can be transmitted? That
+treats only one side of the problem as variable, and bottlenecks progress
+entirely on transmitter design and regulatory limits — both slow to move,
+some immovable.
+
+The right question converts a single-variable optimization into a two-sided
+inequality:
+
+$$
+P_{\text{harvested}} \;\geq\; P_{\text{device, average}}
+$$
+
+Harvested power is a function of ambient power density, effective collecting
+area, and rectenna efficiency at that density. Required power is a function
+of display, semiconductor efficiency, radios, sensing, and local computation.
+
+For decades, research effort has gone almost entirely into the harvesting
+side — larger transmitters, tighter beams, higher regulatory ceilings. That
+is a mistake. Every constraint on the harvesting side is a hard physical
+limit or a slow materials-science problem. The other side — required power —
+is a problem this industry has already been solving, incrementally, for fifty
+years, for reasons that have nothing to do with wireless power at all.
+
+<Axiom n="2">
+  The goal is not to beam more power. It is to close the gap from whichever
+  side is moving faster — and one side is already moving on its own, for
+  reasons unrelated to this argument entirely.
+</Axiom>
+
+## 5. Four converging curves
+
+This section names the four forces that close the inequality — and argues
+that the fourth curve is the one that turns this from a terrestrial curiosity
+into a planetary-scale infrastructure bet.
+
+<Schematic id="FIG 1" caption="Four independent curves, none of them built for this purpose, that intersect anyway.">
+```
+  curve 1              curve 2              curve 3              curve 4
+  device power ↓       rectenna eff. ↑      compute              launch cost ↓
+                                             decentralization ↑
+
+  chip design,         the one curve        hyperscale data      reusable rocket
+  low-power             requiring genuine    centers absorbing    economics, already
+  displays,             research progress    on-device work,      cut an order of
+  microwatt sensors     rather than          financed by the      magnitude, still
+                        market momentum      largest balance      falling
+                                             sheets on earth
+
+        └──────────────────┴──────────────────┴──────────────────┘
+                                     │
+                    the gap between what a device needs
+                    and what an ambient field supplies
+                              closes on its own
+```
+</Schematic>
+
+**Curve 1 — device power demand ↓.** Already falling, driven by efficient
+chip architectures, lower-power displays, microwatt-class sensors, and
+aggressive power management. This curve requires no new physics — it is the
+electronics industry doing what it has always done, for markets that have
+nothing to do with ambient power.
+
+**Curve 2 — rectenna efficiency ↑.** Bounded by the physics in Section 3 —
+materials science, metasurface design, fabrication, impedance matching at low
+incident power density. The one curve of the four that depends on genuine
+research progress rather than market momentum alone.
+
+**Curve 3 — compute decentralization ↑.** Compute is leaving the device.
+Data centers and AI infrastructure — built by the largest companies on earth,
+at a capital scale with no precedent outside a handful of historical
+infrastructure cycles — are absorbing the computational load that used to sit
+locally on-device. This is hundreds of billions of dollars of present-day
+capital expenditure, and every dollar of it pushes Curve 1 down further, for
+reasons that have nothing to do with ambient power.
+
+**Curve 4 — launch costs ↓.** Reusable rocket architecture has already cut
+the cost of reaching orbit by an order of magnitude, and the trajectory
+continues. This is the curve most people evaluating ambient-powered computing
+ignore entirely, because they are still thinking about wireless power as a
+terrestrial problem. It is not. Falling launch costs are what convert orbital
+power infrastructure from a physics thought experiment into a
+capital-efficient deployment.
+
+<MarginNote label="the hypothesis">
+  These four curves intersect, and ambient orbital power stops being
+  speculative the moment they do. This is not a coincidence of four unrelated
+  trends. Curve 1 is the semiconductor industry's default trajectory. Curve 3
+  is the AI infrastructure buildout every major tech company is currently
+  executing in public. Curve 4 is reusable-rocket economics a handful of
+  well-funded companies have already proven out. Curve 2 is the only piece
+  that requires a dedicated research push — and it is the smallest,
+  most tractable gap of the four.
+</MarginNote>
+
+## 6. Curve 3: the decentralization of compute
+
+Reducing device power does not mean reducing device capability. It means
+compute leaves the device entirely — and this is not a projection, it is the
+current, visible strategy of the largest capital allocators in technology.
+
+Devices become sensors, displays, microphones, cameras, and radios. The
+computationally expensive work happens in centralized data centers and
+increasingly in localized micro-data-centers positioned closer to where
+inference is actually needed — neither of which carries the device's power
+constraint. A device built this way consumes a fraction of the power a
+general-purpose computing device requires, without sacrificing a fraction of
+the perceived capability, because perceived capability was never bottlenecked
+by local compute to begin with.
+
+This essay does not need that capital to be redirected. It only needs it to
+keep flowing in the direction it is already flowing. Ultra-efficient local
+processors will preserve more on-device intelligence than a
+pure-decentralization model assumes — that is not a threat to the argument,
+it is a second lever pointed in the same direction. What ambient-powered
+computing requires is narrower: the device's irreducible local functions —
+sensing, minimal signal processing, radio — must fall within what the ambient
+field supplies. Whether that reduction comes from offloading to data centers
+or from local silicon becoming radically more efficient is irrelevant to the
+inequality in Section 4. Both push the same variable in the same direction.
+
+## 7. Capital cycles
+
+Capital consistently overbuilds infrastructure before the application that
+justifies it is known. This is not the exception. It is the pattern — and it
+is the pattern this essay's entire fourth curve depends on.
+
+Railroads were laid into regions with no existing demand, financed on the bet
+that demand would follow capacity. It did, through industries the original
+capital never anticipated. Electrification followed the same arc: grids built
+for lighting and factory motors became the substrate for an entire consumer
+economy the initial business case never included. Fiber-optic buildouts in
+the late 1990s overbuilt capacity so aggressively that most of it sat unused
+for years — and that excess became the exact substrate that made streaming,
+cloud computing, and mobile broadband viable a decade later.
+
+**The AI infrastructure buildout** is the same pattern, replaying in real
+time. Hundreds of billions of dollars are currently being committed by the
+largest technology companies on earth to data centers, accelerator silicon,
+and inference capacity, at a scale that no currently known application fully
+justifies on its own. It is the direct engine behind Curve 3: every dollar of
+that buildout decentralizes compute away from the device and pushes device
+power requirements down.
+
+History says the infrastructure arrives first and the highest-value
+application is discovered afterward. Data centers are already being built.
+The application this essay is describing is one of the things they make
+possible.
+
+## 8. Research agenda
+
+**Device power.** How low can power realistically fall before further
+reduction costs capability rather than efficiency? Is there a practical floor
+set by radio power alone, once compute and display fall further?
+
+**Harvesting efficiency.** How high can rectenna efficiency reach
+specifically in the low-power-density regime ambient environments operate
+in? Do metamaterial approaches meaningfully increase effective aperture
+without increasing physical size?
+
+**Compute decentralization.** How much further can data-center and
+edge-inference buildout push local device power requirements down? Which
+local computation resists offloading?
+
+**Launch costs.** At what cost-per-kilogram-to-orbit does a diffuse orbital
+power constellation become capital-competitive with terrestrial ambient
+infrastructure? What orbital architecture maximizes usable ground-level power
+density while remaining within safety and regulatory exposure limits?
+
+**Cross-cutting.** Can battery-free mobile robotics exist, given that
+actuation carries power requirements sensing and compute do not? What
+regulatory and safety frameworks govern power density beamed from orbit
+toward populated areas?
+
+## 9. Conclusion
+
+Ambient-powered computing is not a wireless power transmission problem. It is
+a four-curve convergence problem — and three of the four curves are already
+moving without anyone building them for this reason.
+
+Device power is falling because the semiconductor industry has been falling
+for fifty years. Compute is decentralizing because the largest technology
+companies on earth are currently spending hundreds of billions of dollars to
+make it so. Launch costs are collapsing because reusable rocket economics
+have already been proven out by companies with no interest in ambient power
+whatsoever. Only rectenna efficiency remains a dedicated research problem,
+and it is the smallest gap of the four.
+
+> Connect a semiconductor roadmap, a hyperscaler capex chart, and a
+> launch-cost curve, and ambient orbital power is not a bet on a future
+> breakthrough. It is the visible intersection of three capital cycles
+> already underway, plus one tractable research gap.

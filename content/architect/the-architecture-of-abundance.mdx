@@ -1,0 +1,972 @@
+---
+title: "The Architecture of Abundance"
+dek: "How energy flows and creates intelligence. Sixty years of wireless power research optimized the wrong side of an inequality — chasing tighter beams and higher gain instead of asking what happens once the device stops needing very much. This is the case for letting it spread."
+date: "2026-08-29"
+tags: ["wireless power", "robotics", "orbital energy"]
+confidence: "load-bearing"
+paper: "/papers/the-architecture-of-abundance.pdf"
+---
+
+Wireless power transmission delivers usable electrical energy across open
+space, with no wire, plug, or contact between source and receiver. The
+physics has been settled since 1975, when Brown and JPL beamed 30 kW across
+1.54 km at Goldstone and recovered it as DC at over 80 percent conversion
+efficiency. Fifty years later that demonstration has never been meaningfully
+surpassed. What has changed is not whether it works. It is whether it can
+become infrastructure.
+
+## 1. The technology and the vision
+
+The technology splits by range. Near-field inductive coupling — the Qi
+charger under every phone — works to a few centimetres. Far-field radiative
+transfer, where energy leaves as a propagating wave and is captured by a
+rectenna, is unbounded in range and is the only regime that supports a
+genuine infrastructure vision. Everything else is a better cable.
+
+**Terrestrial.** Rooms and buildings carry ambient transmitters the way they
+carry lighting and Wi-Fi. Power fills the volume rather than targeting a
+device. Anything with an antenna and a rectifier harvests continuously on
+entry, with no pairing and no negotiation. Adding a receiver costs the
+infrastructure nothing — the system scales like broadcast, not like a
+distribution grid.
+
+**Orbital.** A collector in geostationary orbit sits in sunlight over 99
+percent of the year, receiving 1,361 W/m² undiminished by atmosphere, against
+a terrestrial capacity factor of 15–25 percent. The energy converts to
+microwave, beams to a ground rectenna, and rectifies back to grid power —
+through weather, through night, continuously. Glaser proposed this in 1968;
+the NASA/DOE Reference System worked it out in full by 1979. It died on
+launch cost, not physics. Caltech's MAPLE demonstrator closed the loop
+end-to-end from orbit in 2023.
+
+What this buys, in both cases: power becomes a property of a *space* rather
+than a property of a *link*. Storage stops being sized for the interval
+between charges and shrinks to the interval between harvests. The connector —
+the most common point of mechanical failure in any device — disappears as a
+design constraint. Energy reaches sealed, moving, and remote places copper
+cannot economically follow.
+
+None of this requires new physics. Every element has been demonstrated at
+some scale. The reason it is not yet infrastructure is the subject of the
+next section.
+
+## 2. The bottlenecks
+
+Every constraint below is decades old and non-negotiable. They explain why
+fifty years of demonstrations have produced almost no deployed
+infrastructure.
+
+<SpecTable
+  title="Eight binding constraints"
+  rows={[
+    { k: "Inverse-square spreading", v: "1/d²", unit: "", note: "10 W delivers ~76 μW to a small antenna at 5 m" },
+    { k: "Diffraction", v: "λ/D", unit: "", note: "1 km transmitter at 2.45 GHz → ~10 km first null on the ground from GEO" },
+    { k: "Path loss", v: "freq-capped", unit: "", note: "absorption rises sharply above ~10 GHz; ionosphere caps space-to-ground intensity" },
+    { k: "Rectifier collapse", v: "10–30%", unit: "", note: "below 100 μW/cm²; a hard floor near −20 dBm" },
+    { k: "Multiplicative losses", v: "40–55%", unit: "end-to-end", note: "best case, high power; diffuse ambient runs in the fractions of a percent" },
+    { k: "Exposure limits", v: "10", unit: "W/m²", note: "ICNIRP / IEEE general-public cap, averaged over 30 min" },
+    { k: "Regulatory vacuum", v: "none", unit: "", note: "no ITU allocation, liability regime, or cross-border framework for space-to-ground" },
+    { k: "Launch mass", v: "100–200", unit: "W/kg", note: "on-orbit specific power today, against ~1 kW/kg viable economics" },
+  ]}
+/>
+
+Six of these eight constraints are immovable by any amount of transmitter
+engineering — they are geometry, atmosphere, or biology. The two that are
+actually in motion, rectifier efficiency and launch economics, are where the
+rest of this essay goes.
+
+## 3. Design philosophy
+
+Sixty years of wireless power research optimized the wrong side of the
+equation. The field decided early that the transmitter was the variable and
+the device was a fixed demand. Everything that followed is downstream of
+that single, catastrophic choice. If the device needs what it needs, the
+only remaining lever is to deliver energy more precisely — so the field
+built tighter beams, larger apertures, faster tracking loops, and spent
+careers shaving beam collection efficiency from 88 percent to 91. Solar power
+satellite architectures are retrodirective by default: the ground station
+emits a pilot, an orbital array of several billion elements phase-conjugates
+it, and the whole structure continuously corrects against its own thermal
+deformation to hold lock on a ten-kilometre rectenna. Terrestrial systems
+copy the pattern at room scale. The receiver announces its location. The
+transmitter aims.
+
+This approach is a failure of imagination as much as a failure of taste.
+Commercial systems already ping devices up to a hundred times a second so
+power can be beamed back along the exact path the ping arrived on — which
+requires the transmitter to maintain a live model of the room, the
+reflectivity of every surface, and the position of every person standing in
+it, so the beam can route around bodies on its way to your pocket. The
+obvious extension has already been patented: derive the user's position from
+the trajectory of the power beam more accurately than any conventional
+indoor positioning system, then use that position to gate what the device is
+allowed to do. That was written up as a feature.
+
+<MarginNote label="the honest description" tone="spec">
+  Walk across your living room and a beam walks with you, re-aiming a hundred
+  times a second, because the infrastructure cannot give you anything until
+  it knows exactly where you are. It takes the one technology that should
+  feel like abundance and converts it into continuous location tracking,
+  then congratulates itself on the efficiency number on the chart. The
+  orbital version is the same idea at planetary scale — a one-kilometre
+  transmitting aperture aimed at a ten-by-thirteen-kilometre field of fenced,
+  excluded ground hardware, built to force diffraction back into a box after
+  physics already said it doesn't fit.
+</MarginNote>
+
+Point-to-point delivery is the architecture of scarcity. It is correct only
+if the receiving side needs a large, specific quantity of power at a
+specific place. Under that condition every joule is worth chasing, tracking
+earns its complexity, and the tenth device in a room genuinely costs the
+infrastructure something, because the infrastructure has to find it, aim at
+it, and hold the lock.
+
+Six of the eight binding constraints from Section 2 — spreading,
+diffraction, atmospheric absorption, ionospheric nonlinearity, exposure
+limits, multipath — are geometry, atmosphere, and biology. None of them move.
+The field committed its entire research budget to pushing against the
+immovable half of the problem and treated the movable half as somebody else's
+department.
+
+<Axiom n="1">
+  The movable half is device demand. It is the only term in the inequality
+  that was ever free, and it is collapsing right now by orders of magnitude
+  — semiconductor scaling, microwatt-class sensing, and the migration of
+  compute off the device into infrastructure that hyperscalers are already
+  financing for reasons that have nothing to do with power delivery. Once
+  that number falls far enough, tracking has nothing left to justify it.
+</Axiom>
+
+## 4. Let it spread
+
+My alternative is to stop fighting diffraction and start using it.
+
+A transmitter radiates. The wave spreads, bends, reflects off walls, and
+fills the volume it is in. The field treats this as the enemy — the thing
+phased arrays exist to suppress, the reason apertures have to be kilometres
+wide. I treat it as the delivery mechanism. Saturate a space with low-intensity
+RF at the regulatory exposure limit, and every device inside that space
+harvests continuously from the field it is already sitting in. No pilot
+signal. No location reporting. No aiming. No handshake. No pairing, docking,
+or charging behaviour of any kind. A device inside the coverage volume is
+powered, and a device outside it is not, and that is the entire user model.
+
+This is how Wi-Fi works, and the parallel is exact at the architectural
+level. An access point does not negotiate a beam to your laptop. It radiates
+into a room, most of the energy lands on walls and floor and people, and the
+fraction that reaches your antenna is enough. Nobody has ever described
+Wi-Fi as wasteful. Coverage is the product; the discarded majority is the
+cost of never having to think about it.
+
+### 4.1 What abandoning the beam actually costs
+
+Delivered power density is governed by Friis:
+
+$$
+P_r = P_t \, G_t \, G_r \left(\frac{\lambda}{4\pi d}\right)^{2} \eta
+$$
+
+Every term is fixed by the deployment except transmitter gain, $G_t$. Gain
+is the whole of what tracking buys, and giving it up is the whole of what
+this architecture pays. A ceiling-mounted phased array with a 0.5 m aperture
+at 2.45 GHz achieves $G_t = 4\pi A / \lambda^2 \approx 211$, or 23 dBi. A
+transmitter shaped to flood a room downward operates around $G_t \approx 3$,
+or 5 dBi.
+
+**The cost of coverage is a factor of roughly 70 — about 18 dB of delivered
+power density, gone.** There is no engineering around this. It follows from
+the definition of gain. Concentration and coverage are the same quantity
+read in opposite directions.
+
+The honest complement: indoor beam tracking never delivered the gain its
+advocates imply. A 0.5 m aperture at 2.45 GHz focuses, at 3 m range, to a
+spot of diameter $2.44\lambda d / D \approx 1.8$ m — the tracked beam
+indoors is already a body-sized blob. Sixty years of tracking machinery, a
+live 3D model of your home, and a hundred position pings per second buy 18
+dB and a focal spot wider than the person standing in it.
+
+### 4.2 The arithmetic of a saturated room
+
+Fix the ceiling first. The FCC caps general-public maximum permissible
+exposure at 1 mW/cm² — 10 W/m² — above 1.5 GHz, and ICNIRP and IEEE C95.1
+land in the same place across the 2–6 GHz band. That is the number, and this
+architecture is designed to sit at it.
+
+Holding 10 W/m² across a room requires $P_t = S \cdot 4\pi d^2 / G_t$. At
+$d = 5$ m with $G_t = 3$: **roughly 1.05 kW radiated per room.** That number
+deserves to be stated plainly, because it is where the Wi-Fi analogy breaks.
+A Wi-Fi access point radiates 0.1 W. An ambient power layer at the regulatory
+ceiling radiates ten thousand times more. The analogy holds for topology and
+fails completely for energetics.
+
+On the receiving side, effective aperture is $A_e = G_r \lambda^2 / 4\pi$ —
+set by wavelength, not by device size:
+
+<SpecTable
+  title="Effective aperture and delivered power at 10 W/m² (G=2)"
+  rows={[
+    { k: "900 MHz — λ = 33.3 cm", v: "177", unit: "cm²", note: "177 mW intercepted → ~90–125 mW DC after rectification" },
+    { k: "2.45 GHz — λ = 12.2 cm", v: "24", unit: "cm²", note: "24 mW intercepted → ~12–17 mW DC after rectification" },
+    { k: "5.8 GHz — λ = 5.2 cm", v: "4.3", unit: "cm²", note: "4.3 mW intercepted → ~2–3 mW DC after rectification" },
+  ]}
+/>
+
+Lower frequency collects an order of magnitude more per element, which is
+why every serious ambient system converges on the sub-gigahertz bands. Three
+corrections keep this honest. Rectification improves at this density —
+incident power of 10 W/m² is 1 mW/cm², the regime where Schottky rectennas
+run 50–70 percent rather than the 30 percent they manage in ambient
+scavenging; operating at the regulatory ceiling buys efficiency as well as
+raw power, and the gain compounds. At the edge of a coverage volume, where
+density falls to 1 W/m², efficiency drops back to 30–50 percent and
+harvested power falls by roughly a factor of twelve. The effective aperture
+in that table is available only to an antenna of roughly λ/2 physical scale
+— 16 cm at 900 MHz; shrink the structure below that and the Chu–Harrington
+limit takes the efficiency back. The receiving antenna, not the chip, sets
+the harvest. And 10 W/m² is the legal maximum for continuous general-public
+exposure, which means a room designed to this figure holds its occupants at
+the regulatory ceiling permanently — compliant, but with zero margin; any
+deployment that wants headroom pays for it linearly in delivered power.
+
+### 4.3 Where the inequality stands today
+
+The condition for battery-free operation is one line:
+
+$$
+P_{\text{harvested}} \geq P_{\text{device, average}}
+$$
+
+Against an ambient field at the FCC ceiling — sub-gigahertz, 10 W/m², λ/2-scale
+antenna — the left side delivers roughly 8 mW at the edge of coverage and
+90–125 mW at the design point. Now the right side:
+
+<SpecTable
+  title="Device class against the field, at 10 W/m²"
+  rows={[
+    { k: "Duty-cycled environmental sensor", v: "10–100 μW", unit: "", note: "closes with 3 orders of margin" },
+    { k: "Asset tag, e-ink label", v: "50–500 μW", unit: "", note: "closes with 2 orders of margin" },
+    { k: "Hearable, low-rate wearable", v: "5–30 mW", unit: "", note: "closes" },
+    { k: "Smartwatch", v: "20–50 mW", unit: "", note: "closes at the design point" },
+    { k: "AR glasses, current architecture", v: "2–5 W", unit: "", note: "misses by ~25×" },
+    { k: "Smartphone", v: "1–2 W", unit: "", note: "misses by ~12×" },
+  ]}
+/>
+
+At the regulatory ceiling the picture inverts. Every low-power device class
+closes outright, and the wearable tier — hearables and watches, which the
+field has always treated as years away — closes today on physics that
+already exists. What remains open is the top tier: glasses and phones,
+missing by roughly one order of magnitude rather than the three the 1 W/m²
+case implied. One order of magnitude is a gap that gets closed by the
+receiving side within a normal product cycle. Sixty years of RF engineering
+read that gap and concluded the field must get stronger. I read it and
+conclude the devices must get smaller in their demands — and the reason I am
+confident is that the entire semiconductor and data-centre industry is
+already closing it, at a scale no wireless power programme could ever fund,
+for reasons that have nothing to do with power delivery.
+
+## 5. Two kinds of device
+
+Why does a device need power at all? Not how much, not how efficiently —
+why. Strip away the product category, the brand, the form factor, and ask
+what the electricity is actually being spent on. There are only two answers,
+and everything in this essay depends on them being the only two.
+
+A device spends energy to move information — capture it, process it,
+transmit it, or present it to a person. Or it spends energy to move matter —
+its own body, a payload, a joint, a wheel, a limb. That is the complete
+list, and the two obey completely different physics.
+
+### 5.1 The question experts skip: does this have to happen here?
+
+Before splitting by what a function costs, split by *where it must occur*.
+Take a pair of AR glasses apart: cameras, inertial sensors, microphones, a
+radio, a processor running perception and rendering, a display. Now ask each
+one whether it has to be on the face.
+
+The cameras do — the photons arrive at that position and nowhere else. The
+microphones do. The inertial sensors do — they measure the motion of that
+specific head. The display does, because the light has to enter that pupil.
+The radio does, because something has to talk. **The processor does not.**
+Bits have no location; a matrix multiply produces the same result in a
+wearable, in a cabinet down the street, or in a data centre in another
+state. The only thing binding computation to the place the data was
+captured is latency, and latency is a distance problem with a distance
+solution. The single most power-hungry function in a modern wearable is also
+the only one with no reason to be there.
+
+### 5.2 Class A: devices that move information
+
+Everything that survives the locality test — sensors, radio, display, and
+the minimum logic to run them — forms the first class: glasses, hearables,
+watches, tags, badges, cameras, and every wearable form factor not yet
+invented. The cost structure is bounded from below by Landauer's limit:
+erasing one bit at room temperature costs about $3 \times 10^{-21}$ joules.
+Real silicon operates three to six orders of magnitude above that floor,
+which means the information side of computing has thousands to millions of
+times of theoretical headroom remaining, and has been descending it for
+fifty years.
+
+Once compute is relocated, something unexpected becomes the dominant load:
+the display. Getting usable brightness into a pupil through a waveguide that
+throws away most of the light costs hundreds of milliwatts today, and that
+cost is set by optical efficiency and human photoreceptors rather than
+transistor scaling. Once compute leaves, the display is the floor. Anyone
+building toward a battery-free wearable should be spending their attention
+on waveguide efficiency and emitter physics. Almost nobody is.
+
+### 5.3 Class B: devices that move matter
+
+The second class does work against a physical field: humanoids, mobile
+robots, manipulators, drones, actuated anything. Lifting one kilogram by one
+metre costs 9.81 joules — the same number in 1600 and in 2600. There is no
+Landauer headroom here, no scaling curve, no process node. Motors already
+convert electricity to torque at better than 90 percent efficiency, which
+means the entire remaining optimisation space on the conversion side is a
+single-digit percentage.
+
+A second question, and it is the one that matters most: on level ground,
+what is the theoretical cost of walking? Zero. A passive dynamic walker
+descends a shallow slope using nothing but gravity and its own geometry,
+indefinitely, with no motors — locomotion on flat ground is a cycle of
+falling and catching, and the energy released in the fall is available to
+fund the catch. Nothing in physics requires a walking machine to burn energy
+the way current ones do. Real machines burn it anyway, because they
+brute-force every joint with an oversized motor and dissipate the
+recoverable energy as heat in the brakes. A humanoid today draws several
+hundred watts to over a kilowatt while walking. A human of the same mass
+spends a fraction of that. The gap between them is engineering waste rather
+than physical necessity, and it is the largest unclaimed efficiency in
+robotics.
+
+So Class B splits again: an irreducible part — real work done against
+gravity, lifting, climbing, accelerating a payload — and a recoverable part
+— the cost of locomotion itself, which current designs pay in full and
+should not.
+
+### 5.4 The asymmetry
+
+<SpecTable
+  title="Class A vs. Class B"
+  rows={[
+    { k: "Governing limit", v: "Landauer", unit: "vs. mgh", note: "kT ln 2, information — vs. Newtonian work, matter" },
+    { k: "Distance above the limit", v: "3–6 orders", unit: "vs. >90%", note: "Class A: huge headroom — Class B: motors already efficient" },
+    { k: "Direction of travel", v: "falling fast", unit: "vs. flat", note: "50 years of descent — vs. permanently flat" },
+    { k: "Can the function relocate?", v: "compute: yes", unit: "sensing/display/radio: no", note: "Class B: no — the mass is here" },
+    { k: "Typical draw today", v: "5 mW – 5 W", unit: "vs. 300 W – 2 kW", note: "" },
+  ]}
+/>
+
+Class A has enormous headroom and an industry spending hundreds of billions
+of dollars descending into it for unrelated reasons. Class B has essentially
+none on the conversion side, and its only real lever is refusing to waste
+energy it could have recovered. Measured against the field from Section 4 —
+a room at the FCC ceiling delivering roughly 90 to 125 mW to a sub-gigahertz
+receiver — **Class A is one order of magnitude away, and the gap is closing
+on its own. Class B is three to four orders away, and no amount of
+semiconductor progress touches it.**
+
+### 5.5 The recursion nobody talks about
+
+How much of a robot's energy is spent carrying the robot's own power supply?
+A humanoid with a 1.5 kWh pack carries roughly 6 kg of cells, 8 to 10 kg with
+housing and thermal management. On a 70 kg machine that is over ten percent
+of total mass, and the cost of moving a legged system scales with mass.
+Ten-plus percent of every joule is spent transporting the thing that stores
+the joules — before accounting for the compute stack it also carries and the
+cooling that stack demands. The battery is a passenger that charges rent.
+Every improvement in energy density is partly consumed by the mass of the
+improvement itself, which is why endurance figures move so slowly despite
+genuine chemistry progress.
+
+### 5.6 What follows
+
+Class A is solved by relocation. Move compute off the body, leave the
+functions physics pins in place, and the demand curve walks down to meet an
+ambient field. Nothing more is required. Class B cannot be solved by
+relocation, because gravity does not care where the inference happened. It
+needs an architecture built specifically around the fact that its load is
+enormous, intermittent, and irreducible. Section 6 takes Class A to its
+conclusion. Class B gets its own answer in Section 8, and it is the more
+interesting of the two.
+
+## 6. The device this is for
+
+Today's wearables and phones are the wrong target. Writing wireless power
+around them is the equivalent of designing lithium-ion packs for 1980s
+mainframes — the power numbers never collapse far enough, which is exactly
+why every company that tried distance charging of smartphones failed and
+retreated to microwatt sensors.
+
+So this is not written for phones or for the glasses currently shipping. It
+is written for the thing that replaces the screen. I believe 2D displays are
+temporary — not improved, abandoned. When you watch something or join a
+call, you will not look at pixels arranged on a plane. You will stand inside
+a photorealistic environment rendered around you in real time, with
+parallax, occlusion, directional sound, and lighting coherent enough that
+your brain stops auditing it and simply accepts the room it is in. Nothing
+like this exists today. That is the point — this class of device is being
+defined right now, before its architecture hardens, which makes it the only
+category where the power question is still open.
+
+## 7. The architecture of a rendered world
+
+Before any of the architecture, the objective stated in one line:
+
+<Axiom n="2">
+  Everything in this section exists to drive the power draw of the head-worn
+  device low enough that a room can supply it. Compute leaving the device,
+  nodes in buildings, choosing what to send over the air — each is a method
+  for removing work from something that has no battery. Section 4 gave the
+  number: a room at the FCC ceiling delivers roughly 100 mW to a sub-gigahertz
+  receiver. So the spec for the entire immersive stack is: build a device
+  that stands inside a rendered world on 100 milliwatts.
+</Axiom>
+
+### 7.1 The budget, itemised
+
+<SpecTable
+  title="What full spatial presence has to run, and what it costs today"
+  rows={[
+    { k: "Cameras, duty-cycled", v: "5–20", unit: "mW", note: "" },
+    { k: "Inertial sensors", v: "0.5–3", unit: "mW", note: "" },
+    { k: "Microphones", v: "1–2", unit: "mW", note: "" },
+    { k: "Eye tracking", v: "5–10", unit: "mW", note: "" },
+    { k: "Minimal local logic", v: "5–20", unit: "mW", note: "" },
+    { k: "Radio", v: "10–1,000", unit: "mW", note: "" },
+    { k: "Display", v: "50–300", unit: "mW", note: "" },
+    { k: "Perception, mapping, rendering", v: "2,000–5,000", unit: "mW", note: "the entire problem" },
+  ]}
+/>
+
+The first five lines add to under 60 mW. They fit, and have fit for years.
+The last three are the entire problem, and they fail in different ways.
+Rendering fails by a factor of thirty. Radio fails or passes depending on a
+decision nobody has made yet. Display fails by a factor of two or three and
+is a physics problem, not an engineering one.
+
+### 7.2 Rendering: the easy one
+
+Rendering is the largest line in the table and the only one with no reason
+to be on the head. Section 5 established why — bits have no location. A
+frame rendered in a cabinet down the street is identical to one rendered
+against someone's forehead, except that the cabinet is plugged into a wall
+and can be cooled with a fan. **Removing rendering and perception from the
+device cuts its draw by roughly 95 percent.** Nothing else on the list comes
+close. There is no silicon breakthrough required and no new physics
+involved — it is a decision about where a chip sits, and the wearable
+industry made that decision wrong by copying the smartphone without asking
+why. That single move takes the device from watts to hundreds of
+milliwatts. It is the difference between needing a battery and not.
+
+### 7.3 Radio: the decision that decides everything
+
+Once rendering moves off, something has to cross the air, and the radio
+bill is set by one thing: how many bits. A good short-range radio costs
+roughly 1 to 10 nanojoules per bit. Multiply that out:
+
+<SpecTable
+  title="What you send determines the radio budget"
+  rows={[
+    { k: "Raw volumetric / light field", v: "1–10 Gbps", unit: "", note: "1–10 W of radio — dead on arrival" },
+    { k: "Compressed stereo video", v: "100–500 Mbps", unit: "", note: "100–500 mW of radio — busts the budget" },
+    { k: "Semantic description + cached scene", v: "1–10 Mbps", unit: "", note: "1–10 mW of radio — fits with room to spare" },
+  ]}
+/>
+
+The question of what format the spatial internet uses is a power question
+wearing a costume. Send pixels and the radio alone consumes more than the
+entire harvest. Send a description of the scene and let the receiver rebuild
+it, and the radio nearly disappears — while the rebuilding cost lands right
+back on the device you were trying to keep empty. Both extremes fail. The
+rule I would build to:
+
+> Send a thing only when sending it costs the device less energy than
+> recalling or reconstructing it.
+
+A wall that has not moved in an hour is already in memory — recall it. A
+texture the device has seen a thousand times is a pointer, not a payload. A
+face mid-expression gets sent at full fidelity, because generating a face is
+expensive and untrustworthy. Every object, every frame, gets that decision
+made for it against one budget. Nobody has built this layer. It matters more
+than any codec, because it is the difference between a radio that fits
+inside 100 mW and one that does not.
+
+### 7.4 Where the compute goes, and why distance is a power problem
+
+Spatial presence breaks if motion-to-photon latency exceeds roughly 20
+milliseconds. Spend that budget: sensor readout 2–5 ms, uplink 1–2 ms,
+inference and render 5–8 ms, downlink 1–2 ms, display scanout 2–5 ms.
+Almost nothing is left for travel time. Light in fibre covers about 200,000
+km per second, so a 1,000 km round trip costs 10 ms before a single packet
+is switched or queued. Hyperscale data centres are built where land and
+power are cheap, which is a long way from where people live. The distance
+does not negotiate.
+
+A node that is too far away forces the device to compensate locally —
+predicting head motion, warping the last frame, holding a local scene cache,
+patching what arrived late. Every one of those is compute back on the head,
+and compute on the head is the thing we just removed. Latency failure
+converts directly to power failure. So the compute goes into cabinets a few
+kilometres out, or into the building itself — not for elegance, but because
+that is the only placement where the device gets to stay empty. Sharing
+makes it affordable: a wearable's GPU sits idle most of the day and is sized
+for its worst second; a neighbourhood node runs near full utilisation,
+because a hundred people's activity averages out. Same silicon, a fraction
+of the cost per person, and cooling handled by a fan rather than by someone's
+forehead.
+
+### 7.5 The room becomes the computer
+
+Push it one step further and the building holds the compute directly,
+alongside its electrical, network, and HVAC plans. The reason is mundane and
+decisive: **the building is already plugged in.** Grid power at a fixed
+location is effectively unlimited, thermally unconstrained, and costs
+nothing to carry. A room that senses its own geometry and holds its own
+persistent model gives every device inside it a second discount — the
+device stops re-deriving what the room already knows. Fewer bits over the
+radio, less sensing duty cycle, less local logic. The building does the
+work once for everyone in it.
+
+### 7.6 What is left
+
+Run the three moves and the budget closes: rendering and perception
+offloaded, 2–5 W down to under 50 mW; adaptive representation over the
+radio, 500 mW down to 5 mW; sensors, unchanged, ~30 mW. Total: under 90 mW,
+inside the field a room can legally supply.
+
+One line refuses to move. The display still costs 50 to 300 mW, and no
+amount of architecture touches it, because the cost is set by waveguide
+efficiency and human photoreceptors. **Once compute leaves the device, the
+display is the entire remaining problem.** Everything else in this essay is
+solved by placement. That one is solved by optics, and it is where I would
+put the next decade of attention.
+
+Class A closes here. Section 8 takes on Class B, where none of these moves
+work, because gravity does not care where the inference happened.
+
+## 8. The Class B problem
+
+Section 5 drew the line. Class A moves information and closes against an
+ambient field within one order of magnitude. Class B moves matter, and the
+gap is three to four orders of magnitude. This section earns that number.
+
+Take Tesla Optimus, because it is the most publicly documented humanoid on
+earth and there is no reason to argue from a hypothetical when a real
+machine gives better numbers.
+
+### 8.1 The numbers, stated plainly
+
+<SpecTable
+  title="Optimus power draw by state — every figure publicly reported"
+  rows={[
+    { k: "Idle, standing", v: "~100", unit: "W", note: "" },
+    { k: "Walking, normal pace", v: "250–500", unit: "W", note: "" },
+    { k: "Sustained heavy manipulation", v: "500 W – 1", unit: "kW", note: "" },
+    { k: "Single arm, active lift", v: "1–2", unit: "kW", note: "" },
+    { k: "Joint acceleration transient", v: "~3", unit: "kW", note: "reported" },
+    { k: "Onboard energy storage", v: "2.3", unit: "kWh", note: "" },
+    { k: "Runtime at typical load", v: "4–8", unit: "hours", note: "" },
+  ]}
+/>
+
+Now put it next to the field. Section 4 gave a saturated room at the FCC
+ceiling: roughly 90 to 125 mW delivered to a well-designed sub-gigahertz
+receiver.
+
+<Axiom n="3">
+  Idle Optimus needs 100 W. The room delivers 0.1 W. That is a gap of three
+  orders of magnitude before the robot has taken a single step. Walking
+  pushes the requirement to 250–500 W — four orders of magnitude past the
+  field. A single arm mid-lift draws more power on its own than a fully
+  saturated room delivers to a thousand devices combined.
+</Axiom>
+
+### 8.2 Why the Class A playbook does not apply
+
+Relocating compute does nothing here, because the power is not going to
+inference. It is going to torque. A humanoid's perception and planning stack
+draws perhaps 50 to 150 watts, and every watt of it can leave the robot the
+same way it leaves a pair of glasses — that solves maybe 10 percent of the
+budget. The other 90 percent is motors converting electricity into force
+against a body gravity is actively pulling down, and gravity does not care
+where the inference happened.
+
+Efficiency gains do not close a three-order gap either — motors already
+convert electricity to mechanical work above 90 percent efficiency, and
+there is no headroom left to shave. And a bigger beam cannot legally exist:
+Section 2 already fixed the ceiling at 10 W/m². Closing this gap by raising
+transmitted power means delivering kilowatts continuously to a moving target
+in occupied space — which Section 3 already named for what it is: not
+infrastructure, a directed-energy weapon pointed down a hallway. That option
+is off the table, not merely disadvantaged. Class B needs its own
+architecture. That is Section 9.
+
+### 8.3 The loop nobody escapes
+
+The robotics industry has a circular problem and has been treating it as a
+linear one. A humanoid draws power; peaks are brutal, so endurance is short.
+The response is a bigger battery. A bigger battery is more mass. More mass
+means more torque at every hip and knee, on every step, forever — which
+means more power draw, which means the bigger battery buys less runtime than
+its capacity suggested, which motivates a bigger battery. Every iteration of
+that loop makes the machine heavier and the return smaller.
+
+**The mass audit.** Optimus Gen 2 weighs 57 kg and carries a 2.3 kWh pack.
+At realistic pack-level energy density of around 170 Wh/kg — cells plus
+housing, BMS, and thermal management — that pack is roughly 13.5 kg. **Twenty-four
+percent of the entire robot.** Nearly a quarter of the machine exists to
+feed the machine.
+
+**The loop, written down.** Locomotion power for a legged system scales
+roughly with mass. Call that constant $k$; for Optimus at ~375 W average
+walking draw and 57 kg, $k \approx 6.6$ W/kg. Let $\rho$ be pack energy
+density and $t$ the runtime you want. Then:
+
+$$
+m = m_{\text{structure}} + \frac{k \cdot m \cdot t}{\rho}
+\quad\Rightarrow\quad
+m = \frac{m_{\text{structure}}}{1 - kt/\rho}
+$$
+
+The battery mass depends on total mass, and total mass depends on battery
+mass. This is a rocket equation wearing a different costume, and it behaves
+like one:
+
+<SpecTable
+  title="Runtime target vs. total mass, structure mass 43.5 kg"
+  rows={[
+    { k: "6 hour target", v: "57 → 13.5", unit: "kg", note: "24% battery share" },
+    { k: "12 hour target", v: "82 → 38", unit: "kg", note: "47% battery share" },
+    { k: "18 hour target", v: "175 → 131", unit: "kg", note: "75% battery share" },
+    { k: "24 hour target", v: "640 → 596", unit: "kg", note: "93% battery share" },
+  ]}
+/>
+
+**And there is a wall.** The denominator hits zero at $t = \rho/k$. For
+these numbers that is **25.8 hours.** No battery-powered humanoid at
+current energy density and current locomotion efficiency reaches 26 hours
+of walking endurance, regardless of how large you build the pack — past
+that point the battery is carrying only itself, and adding capacity
+subtracts runtime. That wall does not move with better cells the way people
+assume: doubling energy density to 340 Wh/kg pushes it to 51 hours — a real
+improvement, and still a wall, bought with thirty years of chemistry that
+has delivered roughly a tripling in as long.
+
+**Now the dumb question: what is this robot if you take the battery out?**
+Delete the pack and Optimus is a 43.5 kg machine. Apply Section 7's argument
+and offload the perception and planning stack — the compute board, its
+heatsink, its cooling — and remove another 2 to 4 kg. Call it 40 kg.
+
+<SpecTable
+  title="Recomputed power draw at 40 kg vs. 57 kg"
+  rows={[
+    { k: "Idle, standing", v: "100 → 70", unit: "W", note: "" },
+    { k: "Walking", v: "375 → 264", unit: "W", note: "" },
+    { k: "Arm lift", v: "1–2 → 0.7–1.4", unit: "kW", note: "" },
+  ]}
+/>
+
+*The 40 kg figure assumes compute has been offloaded to infrastructure per
+Section 7. The 264 W is purely actuation power with no on-board inference.*
+Thirty percent off every number in the machine's power budget, from removing
+components rather than improving any of them. That is the figure wireless
+power should be designed against. Every published analysis of powering a
+humanoid wirelessly starts from 57 kg and 375 W and concludes it is
+impossible. It starts from the wrong machine. The robot you would actually
+build for an ambient field never had the pack in it, and it is 30 percent
+cheaper to move as a direct consequence. And the loop reverses direction: in
+the battery architecture, every kilogram of storage adds power draw which
+demands more storage — the recursion diverges. Take the storage out and the
+recursion runs backwards: less mass means less power, which means less
+energy to supply, which means less onboard hardware, which means less mass.
+The same feedback that made batteries diverge makes a battery-free machine
+converge.
+
+### 8.4 What a human costs
+
+Put Optimus next to the machine it was copied from. A human basal metabolic
+rate is roughly 100 watts — about 2,000 kcal a day, spread across 1.7 m² of
+skin at around 60 W/m². That number is not spent on standing — standing is
+free. It buys breathing, blood circulation to every cell, immune
+surveillance, continuous tissue repair, digestion, and holding a 37 °C core
+temperature against whatever the room is doing. Roughly 70 percent goes to
+organ and cellular function, about 20 percent to physical activity, and
+around 10 percent to thermoregulation specifically. Inside that same 100
+watts, **the brain runs on about 20** — general intelligence, vision,
+language, planning, motor control, memory, and abstraction, on less power
+than a household light bulb dims to.
+
+<SpecTable
+  title="Human vs. Optimus, side by side"
+  rows={[
+    { k: "Baseline draw — human (~70 kg)", v: "~100", unit: "W", note: "circulation, digestion, immunity, repair, thermoregulation, and a 20 W general intelligence" },
+    { k: "Baseline draw — Optimus (57 kg)", v: "~100", unit: "W", note: "holding a pose" },
+    { k: "Cognition — human", v: "~20", unit: "W", note: "" },
+    { k: "Cognition — Optimus", v: "50–150", unit: "W", note: "narrow" },
+    { k: "Walking — human", v: "300–400", unit: "W metabolic", note: "" },
+    { k: "Walking — Optimus", v: "~375", unit: "W", note: "" },
+  ]}
+/>
+
+The two machines draw the same power at rest. One of them is running an
+entire biology on it. The other is standing still. This is the comparison
+that should embarrass the field, and constructively: a robot pays none of
+biology's overhead — no digestion, no immune system, no cellular repair, no
+blood to move, no core temperature to defend — and still burns as much as a
+living body doing all of it simultaneously. Its cognition alone costs three
+to seven times what a human brain costs while doing far less. So when
+someone tells me a humanoid's power draw is near some physical floor, I do
+not believe them. There is a 70 kg proof walking around that the floor is
+much lower. The gap between Optimus and a human is engineering debt, and
+debt gets paid down.
+
+### 8.5 Three variables, one of them locked
+
+Back to the equation everything in this essay runs on:
+
+$$
+P_{\text{harvested}} = S \times A \times \eta
+$$
+
+Incident power density, effective collecting area, conversion efficiency.
+Three terms — take them one at a time and see which ones a designer
+actually controls. $S$ is locked: the FCC caps it at 10 W/m², settled by
+Sections 2 and 3, biological, internationally harmonised, and not a
+lobbying target. Treat it as a constant and design underneath it.
+
+$A$ is where robots have an advantage nobody uses. Section 8.1 quoted a
+three-order-of-magnitude gap that came from a wearable's antenna — 177 cm²
+of effective aperture. A humanoid is not a pair of glasses. It has roughly
+**2 m² of surface**, the same order as human skin, and every square
+centimetre of it is a candidate receiving surface if the skin itself is the
+rectenna. Two square metres against 177 square centimetres is a factor of
+**113.** The robot's own size, a liability in every other part of this
+analysis, is an asset here.
+
+<SpecTable
+  title="Harvest with the robot's own body as the aperture, 10 W/m², 60% rectification"
+  rows={[
+    { k: "Fully illuminated, 2 m² presented", v: "~12", unit: "W", note: "" },
+    { k: "Orientation-averaged, ~0.7 m² effective", v: "~4", unit: "W", note: "the honest number" },
+  ]}
+/>
+
+The honest number is the second one. Effective area is the *projected* area
+facing the field, and it changes continuously as the machine turns, bends,
+reaches, and walks. Anyone quoting 2 m² for a moving robot is quoting a best
+case; real deployment needs multi-directional transmitters and receiving
+surfaces distributed so some usable fraction stays illuminated in any pose.
+Conformal metamaterial rectennas are what make this term real rather than
+theoretical — curved, structural, integrated into the shell instead of
+bolted on as a panel. This is an open research problem, and it is the
+single highest-leverage unsolved thing in Class B, because it is the only
+term with two orders of magnitude sitting in it.
+
+$\eta$ is the other live variable. Rectification runs 50–70 percent at the
+densities this architecture operates in, and it improves for reasons
+unrelated to robotics. So: one term fixed by law, one term with enormous
+unclaimed headroom, one term improving on its own. Which leaves the fourth
+quantity, $P_{\text{required}}$. Section 8.3 already took 30 percent off it
+by deleting the battery and the compute stack. Section 8.4 established there
+is far more to take, because biology does the same job on a fraction of the
+budget. Against a 40 kg battery-free machine drawing ~70 W idle and ~264 W
+walking, harvesting ~4 W orientation-averaged, the remaining gap is
+**roughly one order of magnitude.** That is the real number, and it is a
+different problem entirely from the three orders I opened this section
+with.
+
+### 8.6 Trickle-spike
+
+Here is the observation the whole architecture turns on: a robot's load is
+not flat, and the shape of it is generous. A humanoid spends the
+overwhelming majority of its duty cycle near baseline — standing, sensing,
+balancing, waiting, moving slowly. Call it 90 percent of the time. The
+remaining 10 percent is where the kilowatts live: lifting, catching,
+accelerating a joint, arresting a fall. Those events last fractions of a
+second. Sizing a power system for those spikes is exactly what produces the
+battery brick. And the spikes do not need to be *supplied* by the field.
+They need to be *buffered*.
+
+That is the trickle-spike architecture:
+
+> Harvest the baseline continuously from the ambient field. Buffer the
+> spikes locally in onboard storage.
+
+Supercapacitors are built for this job — high power density, fast
+discharge, hundreds of thousands of cycles, and complete indifference to the
+deep-discharge behaviour that destroys chemical cells. Paired with a small
+solid-state cell for reserve, they absorb the peak and refill from the
+trickle during the far longer intervals between peaks. The energy balance is
+one line: over any duty cycle, harvested energy must meet or exceed
+consumed energy. Storage decouples instantaneous supply from instantaneous
+demand, which means the machine can momentarily draw far more than the
+field delivers, provided the average closes.
+
+**This is the reframing that matters. Onboard storage stops being sized for
+endurance and becomes sized for the largest single burst.** Endurance comes
+from the field. Storage handles transients. Those are different components,
+orders of magnitude apart in capacity, and conflating them is what put a
+13.5 kg pack on every humanoid in development. This way we can achieve the
+best of both worlds — the wireless power dream without the danger of a death
+ray, and handling high power requirements without carrying bricks.
+
+### 8.7 Why the gap is worth closing
+
+I should be direct about what this essay is and is not. **This essay does
+not solve Class B.** The gap is around one order of magnitude, and closing
+it needs conformal rectenna surfaces that do not exist yet, actuation that
+wastes far less than current designs do, and orientation-averaged collection
+measured in real environments rather than modelled on paper. None of those
+are things I can hand anyone — the first-principles questions each one
+raises are collected below.
+
+What this essay asserts is that the gap is one order of magnitude rather
+than three, that every term in it except the safety ceiling is moving in a
+favourable direction, and that ambient-powered robotics is a systems design
+problem rather than a physics problem. That distinction is the entire
+argument, and it decides whether serious people spend their careers on it.
+
+Here is why they should. A human works roughly 2,080 hours a year. A robot
+that never stops to charge, at 95 percent uptime, works 8,322 — **a 4×
+multiplier on labour hours**, and it comes from removing the charging cycle
+alone: 3× from the shift arithmetic, the rest from holidays, breaks, and
+shift changeover that a machine tied to no cell simply does not have.
+Today's humanoids run four to eight hours and then go to a dock. Every one
+of them is a machine that works one shift and rests two, and the resting is
+imposed by a component the machine did not need to carry in the first
+place. Remove it, and physical labour stops being metered in shifts. That is
+what abundance actually looks like when you trace it back to a mechanism:
+continuous, uninterrupted physical work at a marginal cost that approaches
+the cost of the electricity, available to anyone, everywhere the field
+reaches. That is worth an order of magnitude of somebody's attention.
+
+## 9. Research agenda
+
+**On the transmitter side, where I made you accept a ceiling.** If 10 W/m²
+is fixed by biology and not by engineering, what does a room actually look
+like once every surface — ceiling, wall, fixture — participates in holding
+that density instead of relying on one point source? What does occupied,
+furnished, human-filled multipath do to delivered density in practice,
+versus the free-space numbers used throughout Section 4? Nobody has
+published what a living room with three people and a couch actually
+measures.
+
+**On the receiving side, where the whole architecture lives or dies.**
+Section 4 fixed effective aperture at λ/2 physical scale — is that a hard
+floor, or a rule of thumb inherited from antennas designed for something
+other than harvesting? What happens at the Chu–Harrington limit specifically
+for a rectifying receiver rather than a transmitting one? Section 8 leaned an
+entire order-of-magnitude improvement on conformal metamaterial rectennas
+covering a robot's own skin — nobody has published an orientation-averaged
+efficiency number for a curved, multi-surface receiver moving through a
+realistic gait cycle. Until that number exists, the 4-watt figure is a
+calculation, not a measurement. Is 70 percent rectification close to the
+physical limit for a diode-based rectifier at 10 W/m², or is that number an
+artifact of circuits nobody has optimised for this specific operating point
+because nobody needed to before now?
+
+**On the question I keep returning to and never fully answer.** Section 8.4
+put a human next to a robot and found the robot losing on baseline draw
+despite carrying none of biology's overhead. Is it the actuator topology —
+direct-drive motors fighting their own inertia where tendons and elastic
+elements would store and return energy the way muscle does? Is it the
+control architecture — continuous high-frequency correction where a nervous
+system uses sparse, event-driven signalling? Or is it simply that nobody has
+had to care yet, because grid power made the question uninteresting? I
+suspect it is mostly the third one, and if I am right, the fix is cultural
+before it is technical.
+
+**On the load itself.** What is the true baseline draw of a humanoid with
+the battery and the compute stack both removed, measured rather than
+derived the way I derived it in Section 8.3? My 40 kg, 70-watt figure is an
+extrapolation from published Optimus data — someone needs to build the
+machine and put a meter on it. What fraction of a robot's peak-to-baseline
+ratio is genuinely irreducible — real work against gravity — versus
+recoverable, the way a passive dynamic walker suggests most locomotion cost
+is? Nobody has published that split for a legged humanoid doing real tasks
+rather than walking on a flat lab floor.
+
+**On the floor itself, for both classes at once.** Every number used for
+device demand in this essay is a current-generation number — today's
+silicon, today's actuators, today's control loops. Given the best actuation
+and the most power-efficient computing physics actually permits, not what
+ships today, what is the true minimum average draw for a Class A device
+doing full spatial sensing and display, and for a Class B device doing
+useful physical work? Section 5 gave the governing limits — Landauer for
+one, Newtonian work for the other — but a governing limit is not a floor.
+
+**On storage, since trickle-spike only works if the spike side holds up.**
+What supercapacitor energy density, at what cycle life, actually closes the
+gap for a real duty cycle of lifts, catches, and recoveries rather than the
+clean 90/10 split used for illustration here? I named the mechanism in
+Section 8.6. I did not size it against a real task distribution, because
+that distribution does not exist in the literature yet.
+
+**On the outer layer.** Terrestrial and orbital ambient power are the same
+architecture at different altitude, as argued in the earlier essay this one
+grew out of. What receiver architecture actually serves both without being
+over-built for one and under-built for the other? I have not touched this
+seriously here, and I do not think it should be touched seriously until the
+terrestrial case closes first.
+
+**The one I think matters most.** If Class A closes this decade — and
+Section 7's arithmetic says it does — and Class B closes within the
+following one, what changes about how a city is built? Not the power layer.
+The rest of it — streets, buildings, labour, ownership, what a factory is,
+what a home is. I do not know the answer. I am not sure the question has
+been asked seriously by anyone who also understands the physics in Sections
+2 through 8, and I think it should be.
+
+## Conclusion — why I wrote this
+
+I have spent ten sections on glasses, rooms, and robots. None of them are the
+reason I wrote this essay.
+
+Intelligence scales with energy. Not with data — there is enough, and more
+can be generated. Not with clever training tricks — those buy percentage
+points, not orders of magnitude. By 2026 the industry arrived at this
+without my help: the binding constraint on frontier AI stopped being chip
+supply and became electricity. A single training campus now needs 100
+megawatts to a gigawatt of dedicated power — a nuclear plant's output, aimed
+at one building. Hyperscalers are building their own plants on-site because
+grid queues are now the ceiling on how smart a model can get. That is the
+tracked-beam mistake from Section 3, replayed at civilizational scale —
+point-to-point, exclusive, one dedicated plant per campus.
+
+My claim: the ceiling on energy capture is architectural, not physical.
+Physicists put a Kardashev Type II civilization a thousand to two thousand
+years out. That number is right about today's tools — human-paced
+construction, grid-bound, point-to-point. It assumes the next thousand years
+get built like the last thousand. Here is the bridge. $P_{\text{harvested}} =
+S \times A \times \eta$ does not know whether it is powering glasses, a
+robot, or a data centre. A room at the FCC ceiling and an orbital farm
+beaming gigawatts to a rectenna field are the same architecture at different
+apertures. Solve ambient and orbital delivery once, and you have not built a
+wearable feature — you have built the delivery mechanism for the one
+resource gating every further gain in machine intelligence.
+
+Now the loop that collapses the timeline. Section 8.7 gave robots roughly
+four times human working hours once they stop needing a dock. Free of
+batteries, they do not just do warehouse work — they build rectenna farms
+and launch collectors twenty-four hours a day, bounded only by how much of
+the field they stand in. More energy trains more capable models. Those
+models get pointed at exactly the open problems in Section 9 — rectenna
+efficiency, actuation, launch cost — and close them faster than any human
+research community would. More energy makes more intelligence; more
+intelligence closes the energy problems faster. That loop does not run on
+institutional timescales.
+
+I do not think we reach Type II in fifty to sixty years by getting
+marginally better at solar panels. I think we reach it by removing the
+assumption that energy must be delivered point-to-point and stored locally —
+the same assumption I spent this essay arguing against for a pair of
+glasses. This essay is the first piece of that argument.
+
+The argument I keep coming back to, underneath the equations, is a smaller
+and more uncomfortable one: the field spent sixty years optimizing for
+certainty over reach, because certainty was the defensible choice in every
+room a proposal had to survive. I think that instinct — reward the failure
+that looks like everyone else's failure, avoid the one that is only yours —
+explains more of the last sixty years of this field than any physical
+constant does.
