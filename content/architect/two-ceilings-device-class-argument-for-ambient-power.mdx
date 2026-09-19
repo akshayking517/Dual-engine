@@ -1,0 +1,188 @@
+---
+title: "Two Ceilings: The Device-Class Argument for Ambient Power"
+dek: "Wireless power has been physically possible since 1975 — the reason it never shipped isn't physics. It's who profits from the battery staying inside the device."
+date: "2026-09-17"
+tags: ["wireless power", "FDVR", "compute-in-memory", "hardware", "systems architecture"]
+flavour: "cold · load-bearing"
+paper: "/papers/two-ceilings-ambient-power.pdf"
+---
+
+## Introduction
+
+Wireless power transmission has been physically possible since 1975. Brown and JPL beamed 30 kilowatts across a mile and a half at Goldstone and recovered it as DC at over 80 percent efficiency. Fifty years later, there is not a single wirelessly powered phone or laptop on the market.
+
+Most analyses frame this purely as an unsolved physics problem. The physics has been settled for decades. The unresolved constraints are commercial and behavioral, and three of the four below have nothing to do with engineering.
+
+**1. The power ceiling is real, and it is not the reason this failed.**
+
+Device power draw sits one to two orders of magnitude above what a regulatory-compliant field can legally deliver. A phone needs 1–2W. A room held at the FCC ceiling delivers tens of milliwatts to a phone-sized receiver. That gap is measurable and well known across the field: it closes today for hearables and watches, and misses phones by roughly 12x. Treating it as the sole explanation for fifty years of stalled deployment understates the problem, since a gap of that magnitude is routinely closed by any industry applying sustained capital and engineering effort. Capital was never the binding constraint here, which leaves the three factors below to account for the outcome.
+
+**2. Apple and Samsung have no incentive to build the device that removes their own supply chain.**
+
+Apple's battery supply chain runs through ATL, Sunwoda, Desay, Samsung SDI, and LG Energy Solution — five companies with a decade of tooling, contracts, and manufacturing lines built around the assumption that every device ships with a cell inside it. Samsung SDI supplies batteries to Apple while Samsung Electronics builds batteries into its own competing phones, so Samsung is incentivized on both sides of the relationship to keep the battery in the device. Removing the battery disrupts a five-company supply relationship, a repair and replacement revenue stream, and the industrial design and thermal engineering practice built around cell placement. Companies at this scale are structurally disincentivized from initiating that disruption. MagSafe and Qi are incremental conveniences layered on top of the existing battery architecture rather than steps toward removing it.
+
+**3. The startups that tried this targeted the wrong device, because that device was the only one with a funded market.**
+
+uBeam raised over $40M promising to charge phones from across a room using ultrasound. After roughly a decade with no public working prototype, its CEO stepped down and the company pivoted to B2B licensing in 2018. Energous raised $117M, went public, and saw its stock fall from a peak above $22 to roughly $10. Ossia raised $25M pursuing the same goal, then stated that its Cota system targets sensors, actuators, and small displays in commercial and industrial settings rather than phones. Three companies and over $180M in combined capital went to the one device class that could not close the power gap within a normal funding timeline, because phones represented the only market large enough to justify the raise. The outcome reflects a mismatch between target device and achievable power delivery rather than a limitation in the underlying transmission physics.
+
+**4. Even with ideal power delivery, the retrofit cost for existing homes doesn't clear the bar.**
+
+Requiring dedicated transmitting hardware in living spaces introduces a friction and cost barrier that convenience alone cannot overcome for a device that already charges adequately with a wire. Installing that hardware asks a homeowner to take on cost and disruption for a marginal gain on a device whose current charging method already works. That calculation does not favor adoption, regardless of how well the underlying technology performs.
+
+Taken together, Apple has no reason to disrupt its own battery supply chain, Samsung profits from that chain on both ends, the startups that targeted the existing device category spent over $180M establishing that the category was the wrong target, and even a breakthrough in delivery physics still faces a retrofit cost most households have no reason to absorb.
+
+Apple and Samsung are unlikely to build a battery-less phone voluntarily, since that device threatens the business that currently exists. The path forward is to build for the computing class where an onboard battery was never physically viable in the first place — and let market pressure determine what happens to the phone once that class exists.
+
+## The Class of Devices Wireless Power Is Possible For
+
+Section 1 ruled out phones and laptops, which leaves the question of which device class ambient WPT does serve.
+
+The answer is FDVR — Full Dive Virtual Reality. It's a virtual reality paradigm where the environment is rendered directly to the nervous system through a non-invasive brain-computer interface instead of a screen. Vision, sound, and other sensory input are generated and delivered straight to the brain, while the same interface intercepts and suppresses real-world motor output — so the body stays still and safe while the mind is somewhere else entirely.
+
+Any device pulling under roughly 20mW with a reasonable receiving surface works for ambient WPT, which covers sensors, hearables, and asset tags. FDVR is the case worth building the thesis around because it is the one device class where three independent forces — what the body permits thermally, how the category is perceived, and who currently controls the market — all constrain toward the same architecture.
+
+**1. The body sets the ceiling.**
+
+FDVR renders against the nervous system directly, using a brain-computer interface to bypass the retina and intercept motor output so the body remains still during a session. That is the target mechanism for the category rather than a capability anyone has demonstrated.
+
+Operating that close to the skull imposes a hard biological limit on permissible tissue heating, and the tolerance is small. The device's full power budget — compute, radio, sensing — has to fit inside that limit, because the limit is fixed and the device is the adjustable term. Battery size on a phone is a design variable; this is not. A device built for this task could never carry a battery, since the thermal headroom a cell requires to charge and discharge safely does not exist within the budget.
+
+**2. Form factor drives how the category is perceived.**
+
+Virtual reality has spent a decade branded as an "escapist tool for gamers," and the general public regards it with "dystopian" skepticism. Some of that is earned by the hardware itself: a user gesturing at empty air in a living room, paired with Mark Zuckerberg's claim that "VR is going to be the most social platform," produces an image the market reads as absurd before it reads as useful.
+
+Much of that image traces to the physical shape of the device. A battery dictates the size, weight, and thermal design of everything built around it, which is why phones have converged on a single silhouette. VR headsets look the way they do because a battery, a heat sink, and a compute stack all have to sit on a user's face. Removing the battery transfers control of the form factor from the power cell to the industrial designer, which changes what the category can look like and therefore how it is received.
+
+**3. Nobody owns this market yet.**
+
+There is no incumbent sitting on top of the 3D internet the way Apple and Samsung sit on top of phones. No dominant player, no battery supplier contracts to protect, none of the innovator's dilemma that makes Section 1's incumbents structurally unable to build this themselves. The market is open specifically because the category doesn't exist yet in a form anyone has committed to defending.
+
+## The Architecture
+
+Running FDVR at 20mW appears impossible on inspection. Rendering a photorealistic world in real time against a 20-millisecond latency budget is among the most expensive compute workloads in production, and nothing at that power level approaches it. The device resolves this by not performing the rendering at all.
+
+That relocation does not terminate in a hyperscale data centre, for reasons given below.
+
+This section establishes boundary conditions rather than circuit designs. The transceiver described has not been built by anyone, and specifying exact circuitry for hardware that does not exist would undermine the rest of the argument.
+
+An FDVR interface operating in a home requires an asymmetric split: a compute-in-memory base station in the room absorbing rendering, inference, and everything else that costs real watts at roughly 40W, paired with an ultra-passive head-worn transceiver held under the 20mW ceiling fixed above. The base station tolerates a high power draw because it is wall-powered. The head-worn side cannot, since it is the side the thermal and delivery ceilings apply to. The remainder of this section derives why that split is forced by the physics.
+
+### Distance costs power
+
+A phone connected to a nearby WiFi router draws minimal radio power. The same phone on a cellular connection draws measurably more, though the difference is modest. A Starlink user terminal pulls 50 to 100 watts continuously, three orders of magnitude above a phone's radio, to maintain a link to a satellite in low earth orbit.
+
+Free-space path loss scales with the square of distance, which accounts for the spread. Closing a link over 10 metres to a router costs almost nothing. Closing it over 2 kilometres to a cell tower requires the phone's power amplifier to work harder and hold high-power radio states longer. Closing it over 550 kilometres to a moving satellite requires an electronically steered phased array tracking a target crossing the sky at 7.5 km/s, with handoff to the next satellite every few minutes. The same functional task at three distances produces three power budgets separated by orders of magnitude.
+
+Network topology is conventionally treated as a latency question. It is equally a power question, and the two are coupled in the section that follows.
+
+### Latency converts directly into power
+
+The mechanism that rules out centralized data centres for this workload is thermal and architectural and not just for "privacy" consideration.
+
+Spatial presence breaks if motion-to-photon latency exceeds roughly 20 milliseconds. Light in fibre covers about 200,000 km per second, so a 1,000 km round trip burns 10 ms before a single packet is queued, switched, or rendered. Hyperscale data centres get built where land and power are cheap, which is by definition far from where people live.
+
+When the node sits too far away, the device compensates locally: predicting head motion, warping the last received frame, holding a local scene cache, and patching late arrivals. Each of those is compute executing on the head, which is the load the architecture removed to reach the power budget. A latency shortfall therefore converts into a power shortfall on the device, immediately and proportionally.
+
+The compute therefore goes into the building. A local intelligence layer handles rendering a few metres from the user instead of a few hundred kilometres away, which yields a short link, low transmit power, a single-digit millisecond round trip, and no compensation load on the device.
+
+This relocation does not close the power budget on its own. It establishes the conditions under which closing it becomes tractable.
+
+### Why the architecture has not been deployed
+
+Localised compute is a well-understood architecture, and its absence from the consumer market has two causes, one commercial and one technical.
+
+**1. Billing protection is real, but it isn't the whole reason.**
+
+Sony, Nintendo, Apple, and Valve have each built hundred-billion-dollar businesses selling local hardware compute — consoles, Apple Silicon, gaming rigs. Cloud dependency isn't structural for every large tech company, so revenue protection alone doesn't explain why no hyperscaler ships a consumer edge-AI node.
+
+The larger constraint is technical. DRAM bandwidth per dollar has made local inference at useful scale economically prohibitive, and non-volatile analog compute-in-memory — the architecture that addresses it — has struggled with manufacturing yield and conductance drift at production scale. No memristive array has shipped that holds its analog state reliably across a consumer product's service life. That problem gates deployment more tightly than any billing relationship.
+
+**2. Acoustic noise blocks residential deployment.**
+
+Air-cooled data centres measure 60 to 80 dB at the property line and 85 to 100 dB at the cooling equipment. Eighty decibels is comparable to a petrol lawnmower running continuously, and communities have begun raising it at planning commissions. That noise floor disqualifies the hardware from residential placement regardless of rendering quality.
+
+Most startups address this by designing quieter fans, which treats the acoustic output rather than its cause. The fan exists to remove heat, so the tractable question is why the system generates that quantity of heat in the first place.
+
+### The heat has an architectural cause
+
+Every hyperscale AI rack in current deployment runs NVIDIA Blackwell-class silicon — B200, GB200 NVL72, and the newer B300/GB300 — alongside Google's TPUs and Amazon's Trainium and Inferentia parts. The vendors and instruction sets differ, but all of them share one architectural assumption: memory and processor are physically separate, and data must travel between them.
+
+That is the von Neumann architecture. Weights reside in HBM, compute units reside on the die, and every operation requires fetching operands out of memory, moving them across an interconnect, performing the arithmetic, and writing the result back. The arithmetic accounts for a small fraction of the energy; the transport accounts for most of it.
+
+The published figures are consistent on this point. In Google's TPUv4i work, a single FP32 multiply costs about 1.31 picojoules while fetching one 64-bit value from DDR costs roughly 1,300 picojoules, a thousand-fold difference between performing the arithmetic and delivering the operands to where it happens. Intel's 7nm analysis puts data movement at around 35 pJ/bit, roughly 64 percent of total chip power. Across the literature, data movement accounts for between a third and two-thirds of total system energy depending on workload. This is the memory wall, and it has widened rather than narrowed, because interconnect energy does not scale down with process node the way logic does.
+
+Energy spent moving data yields heat rather than computation, and that heat sets the cooling load, which sets the fan specification, which sets the acoustic output that disqualifies the unit from residential placement. The chain traces back to an architectural decision made in the 1940s.
+
+### Compute in memory
+
+The fix is to stop moving the data. Compute-in-memory performs the arithmetic inside the memory array itself, where the weights already are.
+
+The mechanism is straightforward. Each weight is stored as the conductance of a memory cell, and the input vector is applied as voltages across the rows. Under Ohm's law each cell passes a current equal to voltage times conductance, performing a multiplication in the physical device with no instruction issued and no operand fetched. Under Kirchhoff's current law the currents on a shared column sum automatically, performing the addition in the wire. An entire matrix-vector multiply — the dominant operation in every neural network in production — completes in a single analog step inside the array.
+
+The fetch, the interconnect crossing, and the write-back are eliminated rather than optimised, which removes the dominant energy cost in the von Neumann pipeline.
+
+Lower transport energy reduces heat generation, which reduces the thermal load, which permits a smaller fan or none at all, bringing the unit within the acoustic envelope a residential installation requires.
+
+Even after paying the energy penalty of analog-to-digital and digital-to-analog converters at the edges of the array, in-situ current summation delivers an order-of-magnitude reduction in TOPS per watt compared to shuttling bits across an HBM bus.
+
+## Working Backwards
+
+Every constraint in this thesis so far was derived the same way. Start from the end state you actually want, not from the hardware that's easiest to build, and interrogate every requirement it implies until you hit a wall.
+
+The CIM requirement was derived this way. The target was a noiseless edge node smaller than a server rack and suitable for a room, which raises the question of why the rack requires fans. The answer traces to the GPU bus shuttling every operand from memory to processor, dissipating the majority of the energy as heat in the process. Performing the computation inside the memory instead of transporting the data out to reach it removes that dissipation, which is how compute-in-memory became a requirement rather than an option.
+
+The same method applies going forward: state the experience, determine what it physically requires, and follow each requirement until it either resolves against known physics or reaches something that does not yet exist. Where it reaches that boundary, the boundary becomes the research agenda.
+
+Every engineering decision here splits between two paths. Build for the compromised version of the experience and the physics remains manageable—yielding utilitarian hardware that fulfills basic specs while sacrificing the actual objective. Build for the uncompromising version, and the physics demands components and architectures that do not yet exist at commercial scale. This architecture deliberately chooses the second path.
+
+## The Experience
+
+The target specification: a 40W local node streaming a 16K-equivalent sensory field at 120 fps. The capability level required lets two people actually invent something together inside FDVR — experiment, read each other's intent, infer meaning before the other person finishes speaking — carrying full sensory bandwidth: touch, sight, smell, hearing. Most of what a conversation communicates isn't the words, which is why people read a room better in person than on a video call. FDVR, done right, carries that channel instead of flattening it.
+
+Whether physics and thermodynamics permit that specification as stated is the subject of the next section. Where they do not, the question becomes what has to be invented to close the gap.
+
+## The Pragmatic Bridge
+
+### What the biology actually refuses
+
+The experience described above requires writing photorealism directly to cortex. That capability does not exist, and the reasons it doesn't are physical rather than financial.
+
+The skull is an impedance mismatch. Acoustically, bone attenuates ultrasound at roughly 20 dB/cm at megahertz frequencies, and variable skull thickness introduces phase aberration that defocuses the beam before it arrives at the target. Electromagnetically, conductive tissue attenuates strongly, and the frequencies low enough to penetrate carry wavelengths too long to resolve anything useful. Every non-invasive modality pays this attenuation on the inbound path and again on the outbound path.
+
+Write resolution is diffraction-bound. Spatial resolution cannot exceed the wavelength. Transcranial focused ultrasound at 500 kHz, low enough to cross bone, produces a focal spot on the order of 3–5 mm laterally and 2–3 cm axially. That focal volume contains on the order of 10⁵ to 10⁶ neurons, all of which are stimulated together. The addressable unit is therefore five to six orders of magnitude coarser than the single-neuron resolution a rendered percept would require.
+
+There is no addressable neural raster. A display has an index: row, column, value. Cortex has nothing equivalent. Retinotopic organization exists in V1, but it is individual-specific, plastic across time, and folded into sulci that vary between people. There is no coordinate system to write to, and building one per person is a calibration problem nobody has solved at any resolution.
+
+The thermal ceiling is enforced by perfusion. The brain dissipates roughly 20W in 1.4 kg of tissue and is cooled by blood flow alone, with no fan, heat sink, or thermal margin available. Any energy deposited by a write mechanism adds directly to a budget already operating near its limit, and the tolerance is on the order of a single degree.
+
+Writing photorealism to cortex is a multi-decade biophysics problem. FDVR remains the reference case against which intermediate architectures should be measured — the Carnot limit of personal computing — but a company capitalized against cortical writing in 2026 has no path to revenue within any reasonable investment horizon.
+
+### The same envelope, a different transducer
+
+The architecture is independent of the neural interface. A 40W in-room compute-in-memory node paired with an ultra-light battery-less sub-20mW headpiece is the same system whether the final stage writes to cortex or to a retina, and the transducer is the only element that changes. The retina variant addresses a market that exists today.
+
+**Display.** Micro-OLED panels with pancake optics are the reason current headsets are heavy. Micro-LED or direct laser retinal projection removes the panel, the backlight, and most of the optical stack, and writes an image onto the retina at a fraction of the power.
+
+**Audio.** Binaural rendering is compute, not hardware. It runs on the room node. The headpiece carries transducers and nothing else.
+
+**Mass.** Vision Pro runs 600–650g and tethers to a battery in a pocket. Quest 3 is 515g. Ordinary acetate frames are 25–30g. Removing the battery, the compute stack, its heat sink, and the optical assembly sheds roughly 80 percent of the mass, bringing the device into the weight class of conventional eyewear.
+
+The retina variant runs on the same infrastructure as the cortical one and monetizes it roughly a decade before the neural layer is ready.
+
+### Why the incumbents won't build it
+
+Meta is pursuing head-worn hardware to escape the Apple and Google mobile OS tax — the platform cut, and the privacy changes that cost it roughly $10B in a single year. That incentive requires an immediate, closed, self-contained platform under its own control, which is why it continues shipping standalone battery-heavy units. A device dependent on a room node Meta does not own would reintroduce the platform dependency it is spending tens of billions to escape.
+
+Apple sells Vision Pro as a high-margin consumer device tethered to a pocket battery pack. An architecture requiring an unbranded room-scale edge node commoditizes the iPhone and the Mac, which are the products the company is organized around, so the incentive runs against shipping hardware that makes its own silicon optional.
+
+The pattern matches Section 1: the technology is available and the incentive structure forbids its deployment by the parties best positioned to build it.
+
+### The Trojan horse
+
+The deployment sequence begins with the compute infrastructure rather than the neural interface.
+
+The edge-CIM node deploys first, funded by a near-term business that covers its own cost: silent local AI inference, spatial rendering for lightweight glasses, and home automation executing entirely within the building, with no cloud subscription, no fan noise, and no data leaving the premises. That product has customers in 2026 who have no interest in full dive.
+
+Once that layer is installed in millions of homes, the backbone for full dive already exists. The hard infrastructure problem — getting silent, capable compute into residential space at scale — is solved and paid for by an unrelated business, and the remaining work is a transducer swap at the last stage of a pipeline that is already running.
+
+This follows the pattern documented in Section 16 of the prior paper, where capital builds infrastructure capacity for a stated reason and the application that justifies it arrives afterward.
