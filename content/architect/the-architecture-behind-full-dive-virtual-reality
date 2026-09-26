@@ -1,0 +1,285 @@
+---
+title: "The Architecture Behind Full-Dive Virtual Reality"
+dek: "Working backwards from an impossible experience — why the headpiece has no battery, why the compute lives in the room, and why the interface itself is the one piece nobody can build yet."
+date: "2026-09-26"
+tags: ["FDVR", "wireless power", "compute-in-memory", "hardware", "systems architecture"]
+flavour: "cold · load-bearing"
+paper: "/papers/the-architecture-behind-full-dive-virtual-reality.pdf"
+---
+
+## The Experience
+
+Picture two people actually inventing something together inside a shared space, experimenting, reading each other's intent, inferring meaning before the other finishes speaking, carrying full sensory bandwidth: touch, sight, smell, hearing. Most of what a conversation communicates isn't the words, which is why people read a room better in person than on a video call. Full Dive Virtual Reality (FDVR), done right, carries that channel instead of flattening it.
+
+FDVR renders the environment directly to the nervous system through a non-invasive brain-computer interface instead of a screen. Vision, sound, and other sensory input are generated and delivered straight to the brain, while the same interface intercepts and suppresses real-world motor output. The body stays still and safe while the mind is somewhere else entirely.
+
+The target specification: a 40W local node streaming a 16K-equivalent sensory field at 120 fps.
+
+Physics and thermodynamics either permit that specification or they don't. Where they don't, the gap defines what has to be invented.
+
+## Working Backwards
+
+Start from the end state, not from the hardware that's easiest to build, and follow every requirement it implies until you hit a wall.
+
+State the experience, determine what it physically requires, and follow each requirement until it resolves against known physics or reaches something that doesn't exist yet. That boundary is the research agenda.
+
+This architecture targets the uncompromising version of the experience: full sensory bandwidth, not a scaled-down spec that's easier to ship. The physics demands components and architectures that don't yet exist at commercial scale.
+
+Each part of the design below sits where it does because a physical limit left it nowhere else.
+
+## The Architecture in Outline
+
+The architecture turns on three power scales: roughly 190mW the head can dissipate, roughly 20mW that can be delivered to it wirelessly, and roughly 40W available to a compute node in the room. Each part of the system lands at the scale it does because it's pinned there by one of these three ceilings.
+
+Why ~20mW? Exposure limits cap the strength of the field in the room, and a headpiece-sized receiver intercepts that field over only tens of square centimetres. What it can harvest is therefore on the order of tens of milliwatts, depending on that capture area and on how efficiently its energy-harvesting antenna turns the field into usable current. ~20mW is the representative base case used here.
+
+The derivation runs as a single chain. Each step below is forced by the one above it.
+
+![The chain in outline, grouped by where each part of the machine ends up](/images/architecture-fdvr/chain-outline.png)
+
+*The chain in outline, grouped by where each part of the machine ends up. The right-hand column marks the scale at which each step becomes the operative limit; the three power scales are in bold.*
+
+## The Body Sets the Ceiling
+
+Working backwards begins at the point of contact. The experience requires an interface that reads from and writes to the nervous system without surgery, which puts the headpiece directly against the skull, and puts it inside a real thermal limit, though the limit turns out to be wide, not narrow.
+
+The head can be modeled as four layers (scalp, skull, the cerebrospinal fluid around the brain, and brain tissue), each conducting heat inward while blood flow carries heat away. This is the standard tissue heat-transfer calculation. Solved for the most power a device can dissipate on the scalp before any tissue warms by more than a degree, it puts the non-invasive thermal ceiling at roughly 85 to 570mW across the 10 to 60cm² of scalp contact a headpiece could realistically use. At the 20cm² a compact headpiece would occupy, the ceiling is 190mW. Beyond that, tissue warms by more than a degree, which is the point at which the design stops being non-invasive in any meaningful sense.
+
+![Temperature profile at the derived ceiling](/images/architecture-fdvr/temperature-profile.png)
+
+*Temperature profile at the derived ceiling, 20cm² contact. The device-on curve sits about a degree above the resting baseline at the scalp and converges with it by the time it reaches brain tissue.*
+
+![Ceiling power against contact area](/images/architecture-fdvr/ceiling-power-vs-area.png)
+
+*Ceiling power against contact area. The two lines bracket whether the device lets the scalp beneath it keep shedding heat to room air (realistic) or blocks that loss entirely (conservative). The relationship is linear because the limit is a flux: 84.8 W/m² conservative, 94.8 W/m² realistic.*
+
+![Sensitivity of the base case to model uncertainty](/images/architecture-fdvr/sensitivity-analysis.png)
+
+*Sensitivity of the 189.6mW base case (20cm², realistic regime) to the four largest sources of model uncertainty. Blood flow carrying heat away through the scalp dominates; none of the four move the figure by enough to change any conclusion drawn from it.*
+
+The head can dissipate about 190mW. Everything the device does on the head has to fit inside that budget.
+
+## Does a Battery Fit Under the Ceiling?
+
+The head now has a budget. Test it against the ordinary answer to powering a head-worn device, the one every headset uses today: put a cell on it.
+
+The cell's own dissipation is not the problem. A lithium cell delivering current generates heat two ways: internal electrical friction as current is pushed through the cell, and heat released by the chemical reaction itself. For a small pouch cell at 3.7V with 300mΩ of resistance to current inside it, supplying a 20mW load costs 0.25mW of self-heating, and supplying a 200mW load costs 3.3mW. Against a 190mW ceiling those are rounding errors. A battery does not disqualify itself on heat.
+
+What disqualifies it is the load it exists to serve. Divide any shipping headset's battery capacity by its runtime and the mean head-side dissipation falls out directly.
+
+| Device | Capacity | Runtime | Mean head-side draw | × ceiling at 20cm² | × ceiling at 60cm² |
+|---|---|---|---|---|---|
+| Apple Vision Pro | 35.9 Wh | 2.25 h | 16.0 W | 84× | 28× |
+| Meta Quest 3 | 18.88 Wh | 2.25 h | 8.4 W | 44× | 15× |
+| Ray-Ban Meta (Gen 1) | 0.57 Wh | 4 h | 142 mW | 0.75× | 0.25× |
+| Head unit, rendering offloaded | n/a | n/a | 13–103 mW | 0.07–0.54× | 0.02–0.18× |
+
+The gap is not a matter of better thermal design, because no arrangement of heat spreaders changes what the tissue underneath will accept.
+
+At that current draw the cell stops being a rounding error too. Quest 3's 8.4W load pulls roughly 2.3A from a single-cell pack, and electrical friction inside the cell alone turns 1.54W into heat, 8.7× the ceiling, before a single transistor in the compute stack has switched.
+
+One head-worn device does sit under the ceiling: Ray-Ban Meta draws 142mW averaged over its 4-hour runtime, 0.75× the 20cm² ceiling. It has no display, no continuous rendering, and no sustained sensory output: a camera, a microphone array, and a radio that wakes up intermittently. The thermal ceiling is why that product is a pair of glasses and Quest 3 is not.
+
+![Mean head-side dissipation on a log scale](/images/architecture-fdvr/mean-head-side-dissipation.png)
+
+*Mean head-side dissipation on a log scale, against the non-invasive thermal ceiling band (85–569mW across 10–60cm²) and the wireless delivery ceiling. Two shipping headsets sit one to two orders of magnitude outside the band.*
+
+The constraint rules out doing the rendering work on the head, not the battery. Every watt of that 8.4W and 16W is rendering, tracking, and display drive: compute that has to happen somewhere, and cannot happen against the skull.
+
+The rendering leaves the head. That conclusion follows from tissue heat alone, before any limit on what a radio may transmit has entered the argument.
+
+## What Is Left on the Head
+
+The rendering has left the head. What stays behind decides the next constraint. The head-worn side now has three jobs: receive the sensory field, convert it into stimulus, and report where the eyes and head are pointing.
+
+The receive path is the expensive one. A 16K-equivalent field across two eyes at 120 fps and 24 bits per pixel is 764Gb/s raw. The eye sees full detail only in a small patch at the centre of its view, so the link needs to carry full resolution only where the eye is looking and can send the periphery coarsely. This sharp-centre streaming cuts the data by roughly an order of magnitude. Compression takes another, landing at about 6.4Gb/s over the link. Both reduction factors are assumptions rather than measurements, and the appendix treats them as such.
+
+The cost of receiving that stream is best measured as energy per bit. Short-range receivers at these rates spend somewhere between 1 and 10 picojoules (trillionths of a joule) on each bit, depending on how far the modulation and chip process can be pushed. That puts the receive chain between 6 and 64mW.
+
+Adding the rest: retinal projection at 5 to 30mW, eye and head tracking at 1 to 5mW, and 1 to 4mW lost converting the received field into a regulated supply. The head-side total lands between 13 and 103mW.
+
+That fits. At worst it is 54 percent of the 190mW thermal ceiling, and at best 7 percent. Relocating the compute did not merely reduce the problem: it moved the device to the other side of the constraint that ruled it out.
+
+With rendering gone, the head needs 13 to 103mW, well inside its thermal budget.
+
+## The Second Ceiling
+
+The thermal problem is solved. A different ceiling appears, and it is still about biology, just enforced a different way: the exposure limit that caps the field in the room exists to keep radio energy from heating tissue too, the same underlying concern as the thermal model above, just applied upstream at the transmitter instead of downstream at the scalp. The head-worn side runs on tens of milliwatts, and those milliwatts have to come from somewhere. A small cell could supply them. So could the room itself, and that route has a limit of its own.
+
+A receiver takes power out of a field, and three things set how much: how strong the field is allowed to be, how much of it the receiver intercepts, and how efficiently it converts what it intercepts into current.
+
+$$P_{\mathrm{rx}} = S \cdot A_{\mathrm{eff}} \cdot \eta$$
+
+Here S is the power density of the field, capped by exposure limits; A_eff is the receiver's energy capture area, which for a headpiece is tens of square centimetres; and η is the fraction of captured energy its harvesting circuit turns into usable current. At the general-public exposure limit above 1.5GHz, 1mW/cm², a 30cm² capture area converting at 65 percent yields about 20mW. The capture-area and efficiency values are illustrative, and the figure moves with them.
+
+That makes ~20mW an architectural boundary under a defined set of conditions, not a universal constant of wireless power. A larger receiver, a more efficient harvesting circuit, or a band with different limits would shift it, but the constraint itself is fixed by regulation and geometry, unlike battery capacity on a phone. A larger cell is an engineering decision with no real ceiling; a larger capture area runs straight into what an industrial designer will put on someone's face. Push the area up and the device stops looking like glasses. Keep it small and the field it can intercept shrinks with it. That tension is real, which is why the harvesting circuit's conversion efficiency, not the capture area, is the lever this design actually leans on.
+
+Against a 13 to 103mW budget, 20mW is binding. The thermal ceiling sits at 190mW, delivery at 20mW (nearly ten times lower), so the architecture has to fit inside the smaller of the two. While rendering was on the head, tissue heat was the constraint and the device ran 44× over it. Once rendering leaves, tissue heat has margin to spare, and delivery becomes the number the design fights.
+
+![Head-side budget after offload, component by component](/images/architecture-fdvr/head-side-budget-breakdown.png)
+
+*Head-side budget after offload, component by component. The total clears the thermal ceiling comfortably and straddles the wireless delivery ceiling, which is where the design constraint now lives.*
+
+Receiver efficiency now decides whether the design closes at all. At 1pJ/bit the receive chain costs 6mW, and the budget closes provided the projector sits near the low end of its range. At 10pJ/bit the receive chain alone costs 64mW and the budget doesn't close. The architecture is feasible across part of that range and infeasible across the rest: receiver energy per bit is the single most load-bearing unknown in the design.
+
+The binding constraint has moved from heat to power delivery. The head-worn side has to run on about 20mW.
+
+## Why Not Keep the Battery Anyway
+
+If a field can supply the endpoint, the battery's role changes: at this power level, nothing physical rules it out.
+
+At tens of milliwatts, a battery clears the thermal ceiling and the mass budget: eight hours at 20mW is 160mWh, about 0.64g of cell. Lithium cells already ship against the head, so safety isn't the argument either. On the physics, a battery is viable.
+
+A battery is an energy store, not a requirement of consuming power. It exists to bridge the gap between when energy is available and when it is needed. A device that draws tens of milliwatts inside a room that can supply tens of milliwatts continuously has no such gap, and so no physical reason to carry its own reservoir.
+
+Removing the reservoir changes the shape of the object, not the power budget. A battery-powered device is organised around its cell, and a continuously powered one is not:
+
+Battery-powered: cell → protection and charge circuitry → mass → charging routine → enclosure → thermal design → form factor
+
+Continuously powered: field → receiver → device
+
+Each link in the first chain is a decision made on the cell's behalf before the industrial designer draws anything. The packaging alone (protection, charge management, a connector, an enclosure rated to hold a lithium cell against the skull) runs to several grams against a target in the twenties. A store also has to be refilled, which caps a session at the size of the cell and puts the device on a charger between uses. For a medium premised on sustained presence, that's a product constraint, not a physical one, but it's the constraint that decides how the thing feels to use.
+
+A device that leaves the room still needs a battery. A device requiring only tens of milliwatts, inside a room that can supply them continuously, doesn't need to carry its own energy at all.
+
+The headpiece is designed without a store, and the ~20mW delivery ceiling becomes its entire power budget.
+
+## The Power Ceiling Forces a Split
+
+That budget is also why phones and laptops were never candidates for ambient wireless power. Whatever a field held at the exposure limit delivers to a receiver of a given size works out to tens of milliwatts, orders of magnitude under what either device needs to run. Anything built to run inside that budget qualifies: sensors, hearables, asset tags, anything without meaningful onboard compute or a display.
+
+Full sensory immersion looks like an odd fit for that list. Rendering a photorealistic world in real time is one of the heaviest compute workloads that exists, several orders of magnitude past a sub-20mW budget. It qualifies anyway: the device receiving the power and the device doing the rendering are two different machines.
+
+The head now fits within its power budget. The rendering machine still needs somewhere to live.
+
+## The Architecture
+
+An FDVR interface operating in a home requires an asymmetric split: a base station in the room absorbing rendering, inference, and everything else that costs real watts at roughly 40W, paired with an ultra-passive head-worn transceiver held under the 20mW ceiling. The base station tolerates a high power draw because it is wall-powered. The head-worn side cannot, and the binding number on that side is delivery rather than tissue heat.
+
+Once compute leaves the head, the obvious place to send it is the cloud, where compute is already abundant. Two facts rule that out, and both turn out to be about power.
+
+## Distance Costs Power
+
+A phone's Wi-Fi radio draws roughly 0.2 to 0.9W while moving data to a router a few metres away. The same phone on mobile data, talking to a tower a kilometre or two off, draws roughly 1.3 to 2.3W. A Starlink terminal pulls 50 to 100 watts continuously (around a hundred times what the phone draws on Wi-Fi) to hold a link to a satellite about 550 kilometres up.
+
+A radio signal spreads over a larger area the farther it travels, so the power arriving at a receiver falls with the square of distance (free-space path loss). That accounts for the spread. Closing a link over 10 metres to a router costs almost nothing. Closing it over 2 kilometres to a cell tower requires the phone's power amplifier to work harder and hold high-power radio states longer. Closing it over 550 kilometres to a moving satellite requires an antenna that steers its beam electronically (a phased array) tracking a target crossing the sky at 7.5 km/s, with handoff to the next satellite every few minutes. The same functional task at three distances produces three power budgets separated by orders of magnitude.
+
+![Measured power drawn by a phone on Wi-Fi and mobile data, and by Starlink terminals](/images/architecture-fdvr/distance-power-tradeoff.png)
+
+*Measured power drawn by a phone on Wi-Fi and on mobile data while transferring data (Columbia, WWW 2015), and by Starlink terminals in normal use (DISHYtech). Shaded bands mark each technology's typical distance.*
+
+The measured numbers are far smaller than distance alone predicts. With the same antennas at both ends, the satellite link would need about three billion times the power of the Wi-Fi link; in practice it needs about a hundred times more. The difference is bought with antennas: a mast-mounted array on the tower, a large antenna on the satellite, and a dish built from hundreds of small elements that aim the signal into a narrow beam instead of spreading it in every direction. Aiming is what makes the long link affordable, and it is also why the device at the far end of the chart is half a metre across and draws 50 to 100 watts continuously.
+
+A headpiece cannot carry a dish. Whatever aiming the link gets has to come from the other end, and the cheapest lever the head-worn side has is to keep that other end close.
+
+Network topology is conventionally treated as a latency question. It's equally a power question.
+
+## Latency Converts Directly Into Power
+
+The mechanism that rules out centralized data centres for this workload is thermal and architectural, not just a privacy consideration.
+
+Spatial presence breaks if the delay between moving your head and seeing the image respond (motion-to-photon latency) exceeds roughly 20 milliseconds. Light in fibre covers about 200,000 km per second, so a 1,000 km round trip burns 10 ms before a single packet is queued, switched, or rendered. Hyperscale data centres get built where land and power are cheap, which is by definition far from where people live.
+
+When the node sits too far away, the device compensates locally: predicting head motion, warping the last received frame, holding a local scene cache, and patching late arrivals. Each of those is compute executing on the head, which is the load the architecture just removed to reach the power budget. A latency shortfall therefore converts into a power shortfall on the device, immediately and proportionally.
+
+A local node a few metres from the user avoids all of it: a short link, low transmit power, a single-digit millisecond round trip, and no compensation load on the device. This relocation does not close the power budget on its own; it establishes the conditions under which closing it becomes tractable.
+
+The compute goes into the building, a few metres from the user, not a few hundred kilometres.
+
+## The Room Has a Ceiling Too
+
+Putting the compute in the building moves the problem rather than ending it. A home has limits of its own, and the first one conventional compute meets is noise.
+
+Air-cooled data centres measure 60 to 80 dB at the property line and 85 to 100 dB at the cooling equipment. Eighty decibels is comparable to a petrol lawnmower running continuously, and communities have begun raising it at planning commissions. The accelerators inside those buildings (the class of hardware this workload would run on today) draw hundreds of watts to a kilowatt per chip and are cooled by moving air. That noise floor disqualifies the hardware from residential placement regardless of rendering quality. The node this architecture calls for has to do the same class of work at roughly 40W, without it.
+
+Most startups address this by designing quieter fans, which treats the acoustic output rather than its cause. The fan exists to remove heat; the real question is why the system generates that much heat in the first place.
+
+The room imposes its own ceiling: the node has to be quiet, and the noise is a symptom of heat.
+
+## The Heat Has an Architectural Cause
+
+Every hyperscale AI rack in current deployment runs NVIDIA Blackwell-class silicon (B200, GB200 NVL72, and the newer B300/GB300) alongside Google's TPUs and Amazon's Trainium and Inferentia parts. The vendors and instruction sets differ, but all of them share one architectural assumption: memory and processor are physically separate, and data must travel between them.
+
+Every operation therefore has four steps: fetch the operands out of memory, carry them across the wires between memory and processor, do the arithmetic, and write the result back. In current accelerators the memory is stacked right beside the processor in the same package rather than sitting on a separate board, but the separation is the same. The defining cost of this physical separation between processor and memory is that the arithmetic accounts for a small fraction of the energy; the transport accounts for most of it.
+
+The published figures are consistent on this point. In Google's TPUv4i work, a single 32-bit floating-point multiply costs about 1.31 picojoules, while fetching one 64-bit value from an external memory chip costs roughly 1,300 picojoules: a thousand-fold difference between performing the arithmetic and delivering the operands to where it happens. Intel's 7nm analysis puts data movement at around 35 pJ/bit, roughly 64 percent of total chip power. Across the literature, data movement accounts for between a third and two-thirds of total system energy depending on workload. That penalty for dragging data across wires has grown rather than shrunk, because the energy of moving a bit across a wire does not fall with each new chip generation the way the energy of logic does.
+
+Energy spent moving data yields heat rather than computation, and that heat sets the cooling load, which sets the fan specification, which sets the acoustic output that disqualifies the unit from residential placement. The chain traces back to an architectural decision made in the 1940s.
+
+Most of the heat comes from moving data, not from computing on it.
+
+## Compute in Memory
+
+If most of the energy goes into carrying data to the processor, the direct fix is to stop carrying it: do the calculation where the data already sits. That approach is compute-in-memory.
+
+The mechanism uses the physics of the memory cell itself. Each weight of a neural network is stored not as a number but as how easily a memory cell lets current through. The input is applied as voltages across the rows of the array. The current that flows through each cell is the voltage multiplied by that ease of flow, so a voltage across the cell's resistance performs a multiplication, with no instruction issued and no data fetched. The currents from every cell on a shared column then merge on the same wire, and merged currents simply add, which performs the addition. An entire matrix-vector multiply (the dominant operation in every neural network in production) completes in a single analog step inside the array.
+
+The fetch, the crossing between memory and processor, and the write-back are eliminated rather than optimised, which removes the dominant energy cost of the separated design.
+
+Lower transport energy reduces heat generation, which reduces the thermal load, which permits a smaller fan or none at all, bringing the unit within the acoustic envelope a residential installation requires.
+
+The array is analog, so its edges need converters that translate between it and the digital logic around it, and those converters cost energy. Even after paying that penalty, summing currents inside the array delivers roughly an order-of-magnitude improvement in calculations per watt compared to shuttling bits across a memory bus.
+
+It is a requirement, not a solved component. Storing a weight as an analog electrical value means that value slowly wanders or fades over time, and manufacturing arrays in which every cell holds its value precisely remains a yield problem at production scale. No array of analog memory cells has yet shipped that holds its stored values steady across a consumer product's service life.
+
+Compute-in-memory is required because it removes the source of the heat rather than cooling it. It is also the least mature part of the architecture.
+
+## Why the Incumbents Won't Build It
+
+The machine is now complete: a milliwatt headpiece powered by the room, a silent compute-in-memory node a few metres away, and a short link between them. The natural question is why the companies best placed to build it have not. Five things compound.
+
+**1. Form factor drives how the category is perceived.** Virtual reality has spent a decade branded as an "escapist tool for gamers," and the general public regards it with "dystopian" skepticism. Some of that is earned by the hardware itself: a user gesturing at empty air in a living room, paired with Mark Zuckerberg's claim that "VR is going to be the most social platform," produces an image the market reads as absurd before it reads as useful.
+
+Much of that image traces to the physical shape of the device. A battery dictates the size, weight, and thermal design of everything built around it, which is why phones have converged on a single silhouette. VR headsets look the way they do because a battery, a heat sink, and a compute stack all have to sit on a user's face, and all three are there because the rendering is there. Removing the battery transfers control of the form factor from the power cell to the industrial designer, which changes what the category can look like and therefore how it is received.
+
+**2. Nobody owns this market yet.** There is no incumbent sitting on top of the 3D internet the way Apple and Samsung sit on top of phones. No dominant player, no battery supplier contracts to protect, none of the innovator's dilemma that makes existing hardware incumbents structurally unable to build this themselves. The market is open specifically because the category doesn't exist yet in a form anyone has committed to defending.
+
+**3. Cloud billing is a reason, but not the main one.** Sony, Nintendo, Apple, and Valve have each built hundred-billion-dollar businesses selling local hardware compute: consoles, Apple Silicon, gaming rigs. Cloud dependency isn't structural for every large tech company, so revenue protection alone doesn't explain why no hyperscaler ships a consumer edge-AI node. The larger gate is technical: local inference at useful scale is expensive while it depends on moving data out of ordinary memory chips fast enough, and the architecture that removes that cost is the immature one described in the previous section. That problem gates deployment more tightly than any billing relationship.
+
+**4. Meta's incentives run the other way.** Meta is pursuing head-worn hardware to escape the Apple and Google mobile OS tax: the platform cut, and the privacy changes that cost it roughly \$10B in a single year. That incentive requires an immediate, closed, self-contained platform under its own control, which is why it continues shipping standalone battery-heavy units. A device dependent on a room node Meta does not own would reintroduce the platform dependency it is spending tens of billions to escape.
+
+**5. Apple's incentives run the other way too.** Apple sells Vision Pro as a high-margin consumer device tethered to a pocket battery pack. An architecture requiring an unbranded room-scale edge node commoditizes the iPhone and the Mac, which are the products the company is organized around, so the incentive runs against shipping hardware that makes its own silicon optional.
+
+The pattern repeats. Where the technology exists, the incentive structure works against its deployment by the parties best positioned to build it; where it does not yet exist, none of them has a reason to finish it.
+
+## The Pragmatic Bridge
+
+Everything so far concerns the machine around the interface. The interface itself (the part that writes to the nervous system) is the one component the constraints have not yet allowed.
+
+### What the Biology Actually Refuses
+
+The experience described above requires writing photorealism directly to cortex. That capability does not exist, and the reasons it doesn't are physical rather than financial.
+
+The skull turns waves back. Soft tissue and hard bone carry waves so differently that much of the energy reflects off, or is absorbed at, the boundary between them. Acoustically, bone attenuates ultrasound at roughly 20 dB/cm at megahertz frequencies, and because skull thickness varies, different parts of a wave are delayed by different amounts, and that distortion blurs the focus before the beam reaches its target. Electromagnetically, conductive tissue attenuates strongly, and the frequencies low enough to penetrate carry wavelengths too long to resolve anything useful. Every non-invasive modality pays this attenuation on the inbound path and again on the outbound path.
+
+Write resolution runs into a wave-focusing limit: a wave cannot be squeezed into a spot much smaller than its own wavelength. Ultrasound focused through the skull at 500 kHz, a frequency low enough to cross bone, produces a spot on the order of 3–5 mm across and 2–3 cm deep. Even that tightest achievable spotlight hits between 100,000 and 1,000,000 neurons at once. The addressable unit is therefore five to six orders of magnitude coarser than the single-neuron resolution a rendered percept would require.
+
+There is no addressable neural raster. A display has an index: row, column, value. Cortex has nothing equivalent. The brain's first visual area does keep a map of what the eye sees, but that map is folded unpredictably into grooves unique to each person, and it shifts over time. There is no coordinate system to write to, and building one per person is a calibration problem nobody has solved at any resolution.
+
+The thermal ceiling is enforced by blood flow. The brain dissipates roughly 20W in 1.4 kg of tissue and is cooled by blood flow alone, with no fan, heat sink, or thermal margin available. Any energy deposited by a write mechanism adds directly to a budget already operating near its limit, and the tolerance is on the order of a single degree.
+
+Writing photorealism to cortex is a multi-decade biophysics problem. FDVR remains the reference case against which intermediate architectures are measured (the Carnot limit of personal computing), but a company capitalized against cortical writing in 2026 has no path to revenue within any reasonable investment horizon.
+
+### The Same Envelope, a Different Transducer
+
+The architecture is independent of the neural interface. A 40W in-room compute-in-memory node paired with an ultra-light, battery-less headpiece running on about 20mW is the same system whether the final stage writes to cortex or to a retina. The transducer (the part that turns signal into stimulus) is the only element that changes. The retina variant addresses a market that exists today.
+
+**Display.** Current headsets are heavy largely because of their display stack: tiny, dense display panels viewed through bulky stacks of folded glass lenses. Micro-LED improves the efficiency of the panel itself; direct laser retinal projection, which scans the image straight onto the retina, removes the panel and most of the optical stack and writes the image at a fraction of the power.
+
+**Audio.** Computing how a sound should arrive at each ear separately (binaural rendering) is compute, not hardware. It runs on the room node. The headpiece carries transducers and nothing else.
+
+**Mass.** Vision Pro runs 600–650g and tethers to a battery in a pocket. Quest 3 is 515g. Ordinary acetate frames are 25–30g. Removing the battery, the compute stack, its heat sink, and the optical assembly sheds roughly 80 percent of the mass, bringing the device into the weight class of conventional eyewear.
+
+The neural interface is separable from the infrastructure. The retina variant runs on the same node and the same headpiece as the cortical one, and monetizes them roughly a decade before the neural layer is ready.
+
+## The Trojan Horse
+
+If the infrastructure is separable from the interface, it can deploy before the interface exists.
+
+The in-room compute-in-memory node deploys first, funded by a near-term business that covers its own cost: silent local AI inference, spatial rendering for lightweight glasses, and home automation executing entirely within the building, with no cloud subscription, no fan noise, and no data leaving the premises. That product has customers in 2026 who have no interest in full dive.
+
+Once that layer is installed in millions of homes, the backbone for full dive already exists. The hard infrastructure problem (getting silent, capable compute into residential space at scale) is solved and paid for by an unrelated business, and the remaining work is a transducer swap at the last stage of a pipeline that is already running.
+
+This follows the pattern documented in Section 16 of the prior paper, where capital builds infrastructure capacity for a stated reason and the application that justifies it arrives afterward.
+
+The infrastructure can be built, and paid for, before the neural interface exists. Everything around the interface can be in place when it finally arrives.
